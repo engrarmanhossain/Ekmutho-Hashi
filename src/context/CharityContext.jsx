@@ -56,7 +56,10 @@ export const CharityProvider = ({ children }) => {
   // Cloud & Auth State
   const [isCloudConnected, setIsCloudConnected] = useState(isSupabaseConfigured);
   const [isCloudSyncing, setIsCloudSyncing] = useState(false);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem('ekmutho_active_user');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [supabaseCreds, setSupabaseCreds] = useState(getSupabaseCredentials);
 
   // Toasts
@@ -480,7 +483,23 @@ export const CharityProvider = ({ children }) => {
     };
   }, [pullFromSupabase]);
 
-  // Volunteer Auth Actions
+  // Pre-configured Organization Leadership Credentials
+  const ADMIN_CREDENTIALS = {
+    email: 'arman@ekmuthohashi.org',
+    password: 'arman2026**',
+    user: {
+      id: 'admin-arman-hossain',
+      email: 'arman@ekmuthohashi.org',
+      user_metadata: {
+        full_name: 'Engr. Arman Hossain',
+        role: 'Admin, President & CEO',
+        title: 'President & CEO',
+        is_admin: true
+      }
+    }
+  };
+
+  // Volunteer & Leadership Auth Actions
   const signUpVolunteer = async ({ email, password, fullName }) => {
     const supabase = getSupabaseClient();
     if (!supabase) throw new Error('Supabase client is not configured.');
@@ -497,13 +516,47 @@ export const CharityProvider = ({ children }) => {
 
     if (error) throw error;
     setUser(data.user);
+    if (data.user) {
+      localStorage.setItem('ekmutho_active_user', JSON.stringify(data.user));
+    }
     addToast(`Account created for ${fullName}!`);
     return data;
   };
 
   const signInVolunteer = async ({ email, password }) => {
+    const trimmedEmail = email.trim().toLowerCase();
+
+    // Check Master Admin, President & CEO credentials
+    if (trimmedEmail === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
+      const adminUser = ADMIN_CREDENTIALS.user;
+      setUser(adminUser);
+      localStorage.setItem('ekmutho_active_user', JSON.stringify(adminUser));
+      addToast('Welcome Engr. Arman Hossain (Admin, President & CEO)!', 'success');
+
+      // Also attempt Supabase sign-in/up in background if connected
+      const supabase = getSupabaseClient();
+      if (supabase) {
+        supabase.auth.signInWithPassword({ email, password }).catch(() => {
+          supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                full_name: 'Engr. Arman Hossain',
+                role: 'Admin, President & CEO',
+                is_admin: true
+              }
+            }
+          }).catch(() => {});
+        });
+      }
+      return { user: adminUser };
+    }
+
     const supabase = getSupabaseClient();
-    if (!supabase) throw new Error('Supabase client is not configured.');
+    if (!supabase) {
+      throw new Error('Supabase cloud is not connected. Use the Admin credentials to sign in, or connect Supabase in Cloud Settings.');
+    }
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -512,6 +565,7 @@ export const CharityProvider = ({ children }) => {
 
     if (error) throw error;
     setUser(data.user);
+    localStorage.setItem('ekmutho_active_user', JSON.stringify(data.user));
     addToast(`Welcome back, ${data.user.user_metadata?.full_name || data.user.email}!`);
     return data;
   };
@@ -519,10 +573,13 @@ export const CharityProvider = ({ children }) => {
   const signOutVolunteer = async () => {
     const supabase = getSupabaseClient();
     if (supabase) {
-      await supabase.auth.signOut();
+      try {
+        await supabase.auth.signOut();
+      } catch (e) {}
     }
     setUser(null);
-    addToast('Signed out.', 'info');
+    localStorage.removeItem('ekmutho_active_user');
+    addToast('Signed out successfully.', 'info');
   };
 
   // Filtered lists

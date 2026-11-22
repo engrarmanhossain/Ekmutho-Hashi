@@ -176,8 +176,9 @@ export const BeneficiaryTokenModal = ({ isOpen, onClose, beneficiary }) => {
                   <span>Area Volunteer</span>
                 </div>
                 <div className="text-center">
-                  <div className="w-24 border-b border-slate-400 mb-1" />
-                  <span>Distribution Lead</span>
+                  <div className="w-36 border-b border-slate-400 mb-1" />
+                  <span className="font-bold text-slate-800 block">Engr. Arman Hossain</span>
+                  <span className="text-[10px] text-slate-500 font-semibold block">Admin, President & CEO</span>
                 </div>
               </div>
             </div>

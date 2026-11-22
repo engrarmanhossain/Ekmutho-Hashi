@@ -9,7 +9,8 @@ import {
   FileSpreadsheet,
   X,
   Sparkles,
-  ShieldCheck
+  ShieldCheck,
+  Crown
 } from 'lucide-react';
 import { useCharity } from '../../context/CharityContext';
 
@@ -173,18 +174,28 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
           })}
         </nav>
 
-        {/* Footer Info & Verification badge */}
-        <div className="p-4 border-t border-slate-800/80 bg-slate-950/40">
-          <div className="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 space-y-1.5">
-            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400">
-              <ShieldCheck className="w-4 h-4 shrink-0" />
+        {/* Leadership & Verification Footer */}
+        <div className="p-4 border-t border-slate-800/80 bg-slate-950/40 space-y-2.5">
+          <div className="p-2.5 rounded-xl bg-slate-800/80 border border-amber-500/30 flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-400/40 flex items-center justify-center shrink-0">
+              <Crown className="w-4 h-4 text-amber-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-extrabold text-white truncate">Engr. Arman Hossain</p>
+              <p className="text-[10px] text-amber-300 font-semibold truncate">Admin, President & CEO</p>
+            </div>
+          </div>
+
+          <div className="p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/60 space-y-1">
+            <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-400">
+              <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
               <span>100% Transparent Ledger</span>
             </div>
-            <p className="text-[11px] text-slate-400 leading-normal">
-              Grassroots community charity in Bangladesh. Zero overhead, direct aid to deserving hands.
+            <p className="text-[10px] text-slate-400 leading-normal">
+              Direct relief aid to underprivileged hands across Bangladesh.
             </p>
           </div>
-          <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400 px-1">
+          <div className="flex items-center justify-between text-[10px] text-slate-400 px-1 pt-0.5">
             <span>Ekmutho Hashi v2.0</span>
             <span className="flex items-center gap-1 text-amber-400">
               <Sparkles className="w-3 h-3" /> Ramadan 1447H

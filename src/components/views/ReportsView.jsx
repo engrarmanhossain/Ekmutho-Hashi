@@ -501,9 +501,10 @@ export const ReportsView = () => {
           </div>
 
           <div className="text-center">
-            <div className="w-36 border-b border-slate-400 mb-1" />
-            <p className="font-bold">President / Coordinator</p>
-            <p className="text-[10px]">Ekmutho Hashi</p>
+            <div className="w-44 border-b border-slate-900 mb-1" />
+            <p className="font-black text-slate-900 text-sm">Engr. Arman Hossain</p>
+            <p className="text-[11px] font-bold text-teal-800">Admin, President & CEO</p>
+            <p className="text-[10px] text-slate-500">Ekmutho Hashi</p>
           </div>
         </div>
       </div>

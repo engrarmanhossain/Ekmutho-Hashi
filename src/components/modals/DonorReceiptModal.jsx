@@ -181,9 +181,10 @@ export const DonorReceiptModal = ({ isOpen, onClose, donor }) => {
               </div>
 
               <div className="text-center">
-                <div className="w-32 border-b border-slate-400 mb-1.5" />
-                <p className="font-semibold text-slate-700">Authorized Receiver</p>
-                <p className="text-[10px] text-slate-400">Ekmutho Hashi Volunteer</p>
+                <div className="w-36 border-b border-slate-400 mb-1.5" />
+                <p className="font-bold text-slate-800">Engr. Arman Hossain</p>
+                <p className="text-[10px] text-slate-600 font-semibold">Admin, President & CEO</p>
+                <p className="text-[9px] text-slate-400">Ekmutho Hashi</p>
               </div>
             </div>
 

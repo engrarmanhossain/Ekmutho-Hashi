@@ -12,7 +12,8 @@ import {
   CloudOff,
   User,
   ShieldCheck,
-  RefreshCw
+  RefreshCw,
+  Crown
 } from 'lucide-react';
 import { useCharity } from '../../context/CharityContext';
 import { ConfirmDialog } from '../common/ConfirmDialog';
@@ -105,20 +106,30 @@ export const Topbar = ({
               </span>
             </button>
 
-            {/* Volunteer Login / Profile Button */}
+            {/* Volunteer / Leadership Login Button */}
             <button
               type="button"
               onClick={onOpenAuthModal}
               className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs font-bold border transition ${
-                user
+                user?.user_metadata?.is_admin || user?.email === 'arman@ekmuthohashi.org'
+                  ? 'bg-amber-100 text-amber-950 border-amber-300 hover:bg-amber-200 ring-2 ring-amber-400/30'
+                  : user
                   ? 'bg-teal-50 text-teal-800 border-teal-300 hover:bg-teal-100'
                   : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
               }`}
-              title={user ? `Signed in as ${user.user_metadata?.full_name || user.email}` : 'Sign in as Volunteer'}
+              title={user ? `Signed in as ${user.user_metadata?.full_name || user.email}` : 'Sign in as Volunteer / Admin'}
             >
-              <User className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline truncate max-w-[100px]">
-                {user ? (user.user_metadata?.full_name?.split(' ')[0] || 'Volunteer') : 'Volunteer Login'}
+              {user?.user_metadata?.is_admin || user?.email === 'arman@ekmuthohashi.org' ? (
+                <Crown className="w-3.5 h-3.5 text-amber-700" />
+              ) : (
+                <User className="w-3.5 h-3.5" />
+              )}
+              <span className="hidden sm:inline truncate max-w-[130px]">
+                {user?.user_metadata?.is_admin || user?.email === 'arman@ekmuthohashi.org'
+                  ? 'Engr. Arman (CEO)'
+                  : user
+                  ? (user.user_metadata?.full_name?.split(' ')[0] || 'Volunteer')
+                  : 'Volunteer Login'}
               </span>
               {user && <span className="w-2 h-2 rounded-full bg-emerald-500"></span>}
             </button>
