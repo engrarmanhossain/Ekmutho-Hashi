@@ -9,6 +9,8 @@ export const Layout = ({
   onOpenAddFund,
   onOpenAddExpense,
   onOpenDistributeAid,
+  onOpenAuthModal,
+  onOpenConnectModal,
   children
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -31,10 +33,12 @@ export const Layout = ({
           onOpenAddFund={onOpenAddFund}
           onOpenAddExpense={onOpenAddExpense}
           onOpenDistributeAid={onOpenDistributeAid}
+          onOpenAuthModal={onOpenAuthModal}
+          onOpenConnectModal={onOpenConnectModal}
         />
 
         {/* Page View Body */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-3.5 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           {children}
         </main>
       </div>

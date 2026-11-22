@@ -18,6 +18,8 @@ import { DistributeAidModal } from './components/modals/DistributeAidModal';
 import { DonorReceiptModal } from './components/modals/DonorReceiptModal';
 import { BeneficiaryTokenModal } from './components/modals/BeneficiaryTokenModal';
 import { FamilyDetailsModal } from './components/modals/FamilyDetailsModal';
+import { SupabaseConnectModal } from './components/modals/SupabaseConnectModal';
+import { AuthModal } from './components/modals/AuthModal';
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -27,6 +29,10 @@ function AppContent() {
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
   const [isDistributeAidOpen, setIsDistributeAidOpen] = useState(false);
   const [distributeInitialBeneficiaryId, setDistributeInitialBeneficiaryId] = useState(null);
+
+  // Cloud & Auth Modals
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Document Viewers states
   const [receiptDonor, setReceiptDonor] = useState(null);
@@ -49,6 +55,8 @@ function AppContent() {
       onOpenAddFund={() => setIsAddFundOpen(true)}
       onOpenAddExpense={() => setIsAddExpenseOpen(true)}
       onOpenDistributeAid={() => handleOpenDistributeAid(null)}
+      onOpenAuthModal={() => setIsAuthModalOpen(true)}
+      onOpenConnectModal={() => setIsConnectModalOpen(true)}
     >
       {/* Dynamic View rendering */}
       {activeTab === 'dashboard' && (
@@ -134,6 +142,18 @@ function AppContent() {
         beneficiary={detailsBeneficiary}
         onOpenDistribute={(benId) => handleOpenDistributeAid(benId)}
         onOpenToken={(beneficiary) => setTokenBeneficiary(beneficiary)}
+      />
+
+      {/* Supabase Cloud Connect & Auth Modals */}
+      <SupabaseConnectModal
+        isOpen={isConnectModalOpen}
+        onClose={() => setIsConnectModalOpen(false)}
+      />
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onOpenConnectModal={() => setIsConnectModalOpen(true)}
       />
     </Layout>
   );
