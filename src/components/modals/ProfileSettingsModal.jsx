@@ -9,23 +9,44 @@ import {
   Save,
   CheckCircle2,
   Crown,
-  BadgeAlert,
-  Sparkles
+  Sparkles,
+  Users,
+  ChevronDown,
+  ShieldAlert,
+  UserCog
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { useCharity } from '../../context/CharityContext';
 
-export const ProfileSettingsModal = ({ isOpen, onClose, onOpenStaffManagement }) => {
-  const { user, staff, updateStaffProfile } = useCharity();
+export const ProfileSettingsModal = ({
+  isOpen,
+  onClose,
+  onOpenStaffManagement,
+  targetStaffMember = null
+}) => {
+  const { user, staff, updateStaffProfile, isUserAdmin } = useCharity();
 
-  const currentStaff = staff.find(
-    s => s.email?.toLowerCase() === user?.email?.toLowerCase() || s.id === user?.id
-  );
+  // Find default selected staff: targetStaffMember or logged-in user or first staff
+  const initialStaffId = targetStaffMember?.id ||
+    staff.find(s => s.email?.toLowerCase() === user?.email?.toLowerCase() || s.id === user?.id)?.id ||
+    staff[0]?.id;
 
-  const isAdmin = user?.user_metadata?.is_admin || user?.email === 'arman@ekmuthohashi.org';
+  const [selectedStaffId, setSelectedStaffId] = useState(initialStaffId);
 
+  // Active target staff being edited
+  const currentStaff = staff.find(s => s.id === selectedStaffId) ||
+    staff.find(s => s.email?.toLowerCase() === user?.email?.toLowerCase()) ||
+    staff[0];
+
+  const isEditingSelf = currentStaff?.email?.toLowerCase() === user?.email?.toLowerCase() || currentStaff?.id === user?.id;
+  const isChief = currentStaff?.email === 'arman@ekmuthohashi.org' || currentStaff?.role?.includes('CEO');
+
+  // Form states
   const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [role, setRole] = useState('Field Volunteer');
+  const [status, setStatus] = useState('approved');
   const [area, setArea] = useState('');
   const [notes, setNotes] = useState('');
   const [password, setPassword] = useState('');
@@ -33,14 +54,28 @@ export const ProfileSettingsModal = ({ isOpen, onClose, onOpenStaffManagement })
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
+  // Synchronize form when selectedStaffId or isOpen changes
   useEffect(() => {
-    if (user) {
-      setFullName(user.user_metadata?.full_name || currentStaff?.fullName || 'Volunteer Member');
-      setPhone(currentStaff?.phone || user.user_metadata?.phone || '');
-      setArea(currentStaff?.area || 'Central Hub');
-      setNotes(currentStaff?.notes || '');
+    if (targetStaffMember) {
+      setSelectedStaffId(targetStaffMember.id);
     }
-  }, [user, currentStaff, isOpen]);
+  }, [targetStaffMember, isOpen]);
+
+  useEffect(() => {
+    if (currentStaff) {
+      setFullName(currentStaff.fullName || '');
+      setEmail(currentStaff.email || '');
+      setPhone(currentStaff.phone === 'N/A' ? '' : (currentStaff.phone || ''));
+      setRole(currentStaff.role || 'Field Volunteer');
+      setStatus(currentStaff.status || 'approved');
+      setArea(currentStaff.area || 'Central Hub');
+      setNotes(currentStaff.notes || '');
+      setPassword('');
+      setConfirmPassword('');
+      setErrorMsg('');
+      setSuccessMsg('');
+    }
+  }, [selectedStaffId, currentStaff, isOpen]);
 
   if (!isOpen) return null;
 
@@ -50,7 +85,7 @@ export const ProfileSettingsModal = ({ isOpen, onClose, onOpenStaffManagement })
     setSuccessMsg('');
 
     if (!fullName.trim()) {
-      setErrorMsg('Please enter your full name.');
+      setErrorMsg('Please enter full name.');
       return;
     }
 
@@ -65,84 +100,125 @@ export const ProfileSettingsModal = ({ isOpen, onClose, onOpenStaffManagement })
     }
 
     const updatedData = {
+      id: currentStaff.id,
       fullName: fullName.trim(),
-      phone: phone.trim(),
-      area: area.trim(),
+      email: isUserAdmin ? email.trim().toLowerCase() : currentStaff.email,
+      phone: phone.trim() || 'N/A',
+      role: isUserAdmin ? role : currentStaff.role,
+      status: isUserAdmin ? status : currentStaff.status,
+      area: area.trim() || 'General Field Team',
       notes: notes.trim()
     };
 
-    updateStaffProfile(updatedData);
-    setSuccessMsg('Profile settings saved successfully!');
+    updateStaffProfile(updatedData, currentStaff.id);
+    setSuccessMsg(`Profile settings for ${fullName} updated successfully!`);
     setTimeout(() => {
       onClose();
     }, 1200);
   };
 
-  const currentRole = currentStaff?.role || (isAdmin ? 'Admin, President & CEO' : 'Field Volunteer');
-  const staffId = currentStaff?.staffId || (isAdmin ? 'EH-STAFF-001' : 'EH-VOLUNTEER');
-  const staffStatus = currentStaff?.status || (isAdmin ? 'approved' : 'approved');
-
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Staff Profile & Account Settings"
-      subtitle="স্বেচ্ছাসেবক ও কর্মকর্তা প্রোফাইল আপডেট"
-      maxWidth="max-w-lg"
+      title={isUserAdmin ? "Staff Profile & Permission Settings" : "My Profile Settings"}
+      subtitle={isUserAdmin ? "Engr. Arman Hossain (Admin) • সকল স্টাফ ও স্বেচ্ছাসেবকের প্রোফাইল পারমিশন ও তথ্য নিয়ন্ত্রণ" : "স্বেচ্ছাসেবক প্রোফাইল ও একাউন্ট আপডেট"}
+      maxWidth="max-w-xl"
     >
       <form onSubmit={handleSave} className="space-y-4">
-        {/* Profile Header Badge */}
+        {/* ADMIN ONLY: Staff Selector Dropdown to configure ANY staff member */}
+        {isUserAdmin && (
+          <div className="p-3 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-teal-500/10 border border-amber-300/80 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-black text-amber-950 uppercase tracking-wider flex items-center gap-1.5">
+                <UserCog className="w-4 h-4 text-amber-600" />
+                <span>Select Staff Member Profile to Configure (স্টাফ নির্বাচন):</span>
+              </label>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-900 border border-amber-300">
+                Admin Full Access
+              </span>
+            </div>
+
+            <div className="relative">
+              <select
+                value={currentStaff?.id || ''}
+                onChange={(e) => setSelectedStaffId(e.target.value)}
+                className="w-full pl-3.5 pr-8 py-2 text-xs sm:text-sm font-bold rounded-xl border border-amber-300 bg-white text-slate-900 focus:ring-2 focus:ring-amber-500 cursor-pointer appearance-none shadow-xs"
+              >
+                {staff.map((s) => {
+                  const isArman = s.email === 'arman@ekmuthohashi.org' || s.role.includes('CEO');
+                  return (
+                    <option key={s.id} value={s.id}>
+                      {isArman ? '👑 ' : '👤 '}
+                      {s.fullName} ({s.role}) • {s.staffId || s.id} {s.status === 'pending' ? ' [PENDING]' : ''}
+                    </option>
+                  );
+                })}
+              </select>
+              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />
+            </div>
+
+            <p className="text-[10px] text-amber-900/80 flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-amber-600 shrink-0" />
+              <span>You have administrative authority to modify roles, contact details, operational area, and status for this staff member.</span>
+            </p>
+          </div>
+        )}
+
+        {/* Profile Header Card */}
         <div
           className={`p-4 rounded-2xl border flex items-center justify-between gap-3 ${
-            isAdmin
+            isChief
               ? 'bg-gradient-to-r from-amber-50 to-amber-100/70 border-amber-300'
               : 'bg-slate-50 border-slate-200'
           }`}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0">
             <div
               className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl shadow-xs shrink-0 ${
-                isAdmin
+                isChief
                   ? 'bg-amber-500 text-white ring-4 ring-amber-300/40'
                   : 'bg-teal-600 text-white'
               }`}
             >
-              {isAdmin ? <Crown className="w-7 h-7" /> : fullName[0]?.toUpperCase() || 'V'}
+              {isChief ? <Crown className="w-7 h-7" /> : fullName[0]?.toUpperCase() || 'S'}
             </div>
 
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-slate-900 text-base">{fullName}</span>
-                {isAdmin && <Sparkles className="w-4 h-4 text-amber-600" />}
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 truncate">
+                <span className="font-extrabold text-slate-900 text-base truncate">{fullName}</span>
+                {isChief && <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />}
               </div>
-              <p className="text-xs text-slate-500 font-mono">{user?.email}</p>
+              <p className="text-xs text-slate-500 font-mono truncate">{currentStaff?.email}</p>
               <div className="flex items-center gap-2 mt-1">
                 <span className="font-mono text-[10px] font-bold text-slate-400">
-                  ID: {staffId}
+                  ID: {currentStaff?.staffId || currentStaff?.id}
                 </span>
                 <span
                   className={`inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase ${
-                    staffStatus === 'approved'
+                    status === 'approved'
                       ? 'bg-emerald-100 text-emerald-800'
-                      : 'bg-amber-100 text-amber-800'
+                      : status === 'pending'
+                      ? 'bg-amber-100 text-amber-800'
+                      : 'bg-rose-100 text-rose-800'
                   }`}
                 >
-                  {isAdmin ? '👑 President & CEO' : staffStatus === 'approved' ? '✓ Verified Staff' : 'Pending Approval'}
+                  {isChief ? '👑 President & CEO' : status === 'approved' ? '✓ Verified Staff' : status === 'pending' ? 'Pending Approval' : 'Suspended'}
                 </span>
               </div>
             </div>
           </div>
 
-          {isAdmin && onOpenStaffManagement && (
+          {isUserAdmin && onOpenStaffManagement && (
             <button
               type="button"
               onClick={() => {
                 onClose();
                 onOpenStaffManagement();
               }}
-              className="px-3 py-1.5 text-xs font-bold text-amber-900 bg-amber-200 hover:bg-amber-300 rounded-xl transition shadow-xs"
+              className="px-3 py-1.5 text-xs font-bold text-amber-900 bg-amber-200 hover:bg-amber-300 rounded-xl transition shadow-xs shrink-0 hidden sm:inline-block"
             >
-              Staff Approvals
+              Staff Roster
             </button>
           )}
         </div>
@@ -160,33 +236,20 @@ export const ProfileSettingsModal = ({ isOpen, onClose, onOpenStaffManagement })
           </div>
         )}
 
-        {/* Profile Inputs */}
+        {/* Profile Fields */}
         <div className="space-y-3">
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-slate-400" />
-              <span>Full Name (পূর্ণ নাম) *</span>
-            </label>
-            <input
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-teal-500 font-semibold"
-              required
-            />
-          </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                <Mail className="w-3.5 h-3.5 text-slate-400" />
-                <span>Email Address</span>
+                <User className="w-3.5 h-3.5 text-slate-400" />
+                <span>Full Name (পূর্ণ নাম) *</span>
               </label>
               <input
-                type="email"
-                value={user?.email || ''}
-                disabled
-                className="w-full px-3.5 py-2.5 text-xs font-mono rounded-xl border border-slate-200 bg-slate-100 text-slate-500 cursor-not-allowed"
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-teal-500 font-semibold"
+                required
               />
             </div>
 
@@ -200,7 +263,7 @@ export const ProfileSettingsModal = ({ isOpen, onClose, onOpenStaffManagement })
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="017xxxxxxxx"
-                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-teal-500"
+                className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-teal-500 font-mono"
               />
             </div>
           </div>
@@ -208,20 +271,52 @@ export const ProfileSettingsModal = ({ isOpen, onClose, onOpenStaffManagement })
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-slate-400" />
-                <span>Assigned Role</span>
+                <Mail className="w-3.5 h-3.5 text-slate-400" />
+                <span>Email Address {isUserAdmin && '(Admin Editable)'}</span>
               </label>
               <input
-                type="text"
-                value={currentRole}
-                disabled
-                className="w-full px-3.5 py-2.5 text-xs font-bold rounded-xl border border-slate-200 bg-slate-100 text-slate-700 cursor-not-allowed"
+                type="email"
+                value={email}
+                onChange={(e) => isUserAdmin && setEmail(e.target.value)}
+                disabled={!isUserAdmin}
+                className={`w-full px-3.5 py-2 text-xs font-mono rounded-xl border ${
+                  isUserAdmin
+                    ? 'border-slate-300 bg-white'
+                    : 'border-slate-200 bg-slate-100 text-slate-500 cursor-not-allowed'
+                }`}
               />
-              <span className="text-[10px] text-slate-400 mt-0.5 block">
-                {isAdmin ? 'Organization Master Role' : 'Role managed by Engr. Arman Hossain'}
-              </span>
             </div>
 
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-slate-400" />
+                <span>Assigned Role {isUserAdmin && '(Admin Permitted)'}</span>
+              </label>
+              {isUserAdmin && !isChief ? (
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="w-full px-3 py-2 text-xs font-bold rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-teal-500"
+                >
+                  <option value="Field Volunteer">Field Volunteer (মাঠপর্যায়ের স্বেচ্ছাসেবক)</option>
+                  <option value="Field Distribution Coordinator">Distribution Coordinator (ত্রাণ বিতরণ সমন্বয়ক)</option>
+                  <option value="Logistics & Wholesale Procurement">Logistics Lead (পাইকারি ক্রয় ও পরিবহন)</option>
+                  <option value="Area Survey & Verification Lead">Survey & Verification Lead (পরিবার যাচাই)</option>
+                  <option value="Accountant & Treasurer">Accountant & Treasurer (হিসাব ও কোষাধ্যক্ষ)</option>
+                  <option value="Admin">Admin (প্রশাসক)</option>
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  value={role}
+                  disabled
+                  className="w-full px-3.5 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-100 text-slate-700 cursor-not-allowed"
+                />
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-slate-400" />
@@ -232,9 +327,27 @@ export const ProfileSettingsModal = ({ isOpen, onClose, onOpenStaffManagement })
                 value={area}
                 onChange={(e) => setArea(e.target.value)}
                 placeholder="e.g. Mirpur & Kallyanpur Hub"
-                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-teal-500"
+                className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-teal-500"
               />
             </div>
+
+            {isUserAdmin && !isChief && (
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                  <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Account Status</span>
+                </label>
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  className="w-full px-3 py-2 text-xs font-bold rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-teal-500"
+                >
+                  <option value="approved">Approved & Active (অনুমোদিত ও সক্রিয়)</option>
+                  <option value="pending">Pending Approval (অনুমোদনের অপেক্ষায়)</option>
+                  <option value="suspended">Suspended (স্থগিত)</option>
+                </select>
+              </div>
+            )}
           </div>
 
           <div>
@@ -251,11 +364,15 @@ export const ProfileSettingsModal = ({ isOpen, onClose, onOpenStaffManagement })
           </div>
         </div>
 
-        {/* Change Password (Optional) */}
+        {/* Change / Reset Password */}
         <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
           <span className="text-xs font-bold text-slate-700 uppercase tracking-wider block flex items-center gap-1.5">
             <Lock className="w-3.5 h-3.5 text-slate-500" />
-            <span>Update Password (Optional)</span>
+            <span>
+              {isUserAdmin && !isEditingSelf
+                ? `Set / Reset Password for ${fullName}`
+                : 'Update Password (Optional)'}
+            </span>
           </span>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <input
@@ -289,7 +406,7 @@ export const ProfileSettingsModal = ({ isOpen, onClose, onOpenStaffManagement })
             className="px-5 py-2 text-xs sm:text-sm font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-sm transition flex items-center gap-1.5 active:scale-98"
           >
             <Save className="w-4 h-4" />
-            <span>Save Profile</span>
+            <span>Save Profile Settings</span>
           </button>
         </div>
       </form>

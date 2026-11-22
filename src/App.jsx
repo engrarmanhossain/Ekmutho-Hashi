@@ -38,6 +38,7 @@ function AppContent() {
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [editingStaffMember, setEditingStaffMember] = useState(null);
   const [isStaffManagementOpen, setIsStaffManagementOpen] = useState(false);
   const [isOrgSettingsOpen, setIsOrgSettingsOpen] = useState(false);
   const [isPublicDonationOpen, setIsPublicDonationOpen] = useState(false);
@@ -50,6 +51,11 @@ function AppContent() {
   const handleOpenDistributeAid = (beneficiaryId = null) => {
     setDistributeInitialBeneficiaryId(beneficiaryId);
     setIsDistributeAidOpen(true);
+  };
+
+  const handleOpenProfileSettings = (member = null) => {
+    setEditingStaffMember(member);
+    setIsProfileModalOpen(true);
   };
 
   const handleReceiptCreated = (donorRecord) => {
@@ -65,7 +71,7 @@ function AppContent() {
       onOpenDistributeAid={() => handleOpenDistributeAid(null)}
       onOpenAuthModal={() => setIsAuthModalOpen(true)}
       onOpenConnectModal={() => setIsConnectModalOpen(true)}
-      onOpenProfileSettings={() => setIsProfileModalOpen(true)}
+      onOpenProfileSettings={handleOpenProfileSettings}
       onOpenStaffManagement={() => setIsStaffManagementOpen(true)}
       onOpenOrgSettings={() => setIsOrgSettingsOpen(true)}
       onOpenPublicDonation={() => setIsPublicDonationOpen(true)}
@@ -171,13 +177,18 @@ function AppContent() {
       {/* Staff Profile Settings & Admin Management Modals */}
       <ProfileSettingsModal
         isOpen={isProfileModalOpen}
-        onClose={() => setIsProfileModalOpen(false)}
+        onClose={() => {
+          setIsProfileModalOpen(false);
+          setEditingStaffMember(null);
+        }}
         onOpenStaffManagement={() => setIsStaffManagementOpen(true)}
+        targetStaffMember={editingStaffMember}
       />
 
       <StaffManagementModal
         isOpen={isStaffManagementOpen}
         onClose={() => setIsStaffManagementOpen(false)}
+        onEditStaffProfile={(member) => handleOpenProfileSettings(member)}
       />
 
       {/* Admin Organization & Branding Settings Modal */}

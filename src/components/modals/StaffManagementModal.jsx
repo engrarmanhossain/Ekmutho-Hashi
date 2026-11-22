@@ -13,13 +13,14 @@ import {
   MapPin,
   Phone,
   Mail,
-  UserPlus
+  UserPlus,
+  UserCog
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { useCharity } from '../../context/CharityContext';
 import { formatDate } from '../../utils/formatters';
 
-export const StaffManagementModal = ({ isOpen, onClose }) => {
+export const StaffManagementModal = ({ isOpen, onClose, onEditStaffProfile }) => {
   const {
     staff,
     approveStaffMember,
@@ -198,6 +199,21 @@ export const StaffManagementModal = ({ isOpen, onClose }) => {
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
+                    {onEditStaffProfile && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onClose();
+                          onEditStaffProfile(cand);
+                        }}
+                        className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition flex items-center gap-1 shadow-2xs"
+                        title="Configure applicant profile settings"
+                      >
+                        <UserCog className="w-3.5 h-3.5 text-teal-600" />
+                        <span>Profile</span>
+                      </button>
+                    )}
+
                     <button
                       type="button"
                       onClick={() => approveStaffMember(cand.id)}
@@ -289,20 +305,36 @@ export const StaffManagementModal = ({ isOpen, onClose }) => {
                         </td>
 
                         <td className="py-3 px-3 text-right">
-                          {!isChief && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (window.confirm(`Are you sure you want to remove ${member.fullName} from staff?`)) {
-                                  (removeStaffMember || rejectStaffMember)(member.id);
-                                }
-                              }}
-                              className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition"
-                              title={`Remove ${member.fullName} from team`}
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
+                          <div className="flex items-center justify-end gap-1">
+                            {onEditStaffProfile && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  onClose();
+                                  onEditStaffProfile(member);
+                                }}
+                                className="p-1.5 text-slate-500 hover:text-teal-700 rounded-lg hover:bg-teal-50 transition"
+                                title={`Configure all profile settings for ${member.fullName}`}
+                              >
+                                <UserCog className="w-4 h-4" />
+                              </button>
+                            )}
+
+                            {!isChief && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (window.confirm(`Are you sure you want to remove ${member.fullName} from staff?`)) {
+                                    (removeStaffMember || rejectStaffMember)(member.id);
+                                  }
+                                }}
+                                className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition"
+                                title={`Remove ${member.fullName} from team`}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );

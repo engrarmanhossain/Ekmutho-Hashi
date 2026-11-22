@@ -707,26 +707,40 @@ export const CharityProvider = ({ children }) => {
   };
 
   // Staff Profile & Permission Actions
-  const updateStaffProfile = async (updatedData) => {
+  const updateStaffProfile = async (updatedData, targetStaffId = null) => {
+    const targetId = targetStaffId || updatedData.id;
+
+    let targetUpdated = null;
     const updatedStaffList = staff.map(s => {
-      if (s.email?.toLowerCase() === user?.email?.toLowerCase() || s.id === user?.id) {
-        return {
+      const isTarget = targetId
+        ? (s.id === targetId || s.staffId === targetId || s.email?.toLowerCase() === targetId?.toLowerCase())
+        : (s.email?.toLowerCase() === user?.email?.toLowerCase() || s.id === user?.id);
+
+      if (isTarget) {
+        targetUpdated = {
           ...s,
           ...updatedData
         };
+        return targetUpdated;
       }
       return s;
     });
+
     setStaff(updatedStaffList);
 
-    if (user) {
+    // If the updated staff member is the currently logged-in user, also update session user
+    const isCurrentUser = targetUpdated && user && (
+      targetUpdated.email?.toLowerCase() === user.email?.toLowerCase() || targetUpdated.id === user.id
+    );
+    if (isCurrentUser) {
       const updatedUser = {
         ...user,
         user_metadata: {
           ...user.user_metadata,
           full_name: updatedData.fullName || user.user_metadata?.full_name,
           phone: updatedData.phone || user.user_metadata?.phone,
-          area: updatedData.area || user.user_metadata?.area
+          area: updatedData.area || user.user_metadata?.area,
+          role: updatedData.role || user.user_metadata?.role
         }
       };
       setUser(updatedUser);
@@ -734,18 +748,15 @@ export const CharityProvider = ({ children }) => {
     }
 
     const supabase = getSupabaseClient();
-    if (supabase) {
+    if (supabase && targetUpdated) {
       try {
-        const matching = updatedStaffList.find(s => s.email?.toLowerCase() === user?.email?.toLowerCase());
-        if (matching) {
-          await supabase.from('staff_members').upsert(mapAppStaffToDb(matching));
-        }
+        await supabase.from('staff_members').upsert(mapAppStaffToDb(targetUpdated));
       } catch (err) {
         console.error('Cloud staff profile update error:', err);
       }
     }
 
-    addToast('Profile settings saved successfully!', 'success');
+    addToast(`Profile settings for ${targetUpdated?.fullName || 'staff member'} saved successfully!`, 'success');
   };
 
   const approveStaffMember = async (staffId) => {
