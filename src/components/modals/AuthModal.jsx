@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   User,
   Lock,
@@ -18,6 +18,8 @@ export const AuthModal = ({ isOpen, onClose, onOpenConnectModal }) => {
   const {
     isCloudConnected,
     user,
+    staff,
+    orgSettings,
     signUpVolunteer,
     signInVolunteer,
     signOutVolunteer
@@ -31,25 +33,35 @@ export const AuthModal = ({ isOpen, onClose, onOpenConnectModal }) => {
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  // Quick fill Admin & CEO credentials
-  const handleQuickAdminLogin = async () => {
-    setEmail('arman@ekmuthohashi.org');
-    setPassword('arman2026**');
-    setLoading(true);
-    setErrorMsg('');
-    try {
-      await signInVolunteer({
-        email: 'arman@ekmuthohashi.org',
-        password: 'arman2026**'
-      });
-      setSuccessMsg('Logged in as Engr. Arman Hossain (Admin, President & CEO)!');
-      setTimeout(() => onClose(), 1200);
-    } catch (err) {
-      setErrorMsg(err.message || 'Login failed.');
-    } finally {
-      setLoading(false);
+  const trimmedEmail = email.trim().toLowerCase();
+  const registeredUser = useMemo(() => {
+    if (!trimmedEmail) return null;
+
+    // Check Master Admin
+    if (trimmedEmail === 'arman@ekmuthohashi.org' || trimmedEmail === 'arman') {
+      const adminStaff = staff?.find(s => s.email?.toLowerCase() === 'arman@ekmuthohashi.org');
+      return {
+        name: adminStaff?.fullName || orgSettings?.president || 'Engr. Arman Hossain',
+        avatarUrl: adminStaff?.avatarUrl || null,
+        initial: 'A'
+      };
     }
-  };
+
+    // Check staff roster by email or username / staffId
+    const found = staff?.find(s =>
+      s.email?.toLowerCase() === trimmedEmail ||
+      (s.staffId && s.staffId.toLowerCase() === trimmedEmail)
+    );
+    if (found) {
+      return {
+        name: found.fullName,
+        avatarUrl: found.avatarUrl || null,
+        initial: (found.fullName || 'S')[0].toUpperCase()
+      };
+    }
+
+    return null;
+  }, [trimmedEmail, staff, orgSettings]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -101,8 +113,8 @@ export const AuthModal = ({ isOpen, onClose, onOpenConnectModal }) => {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={user ? (isAdmin ? 'Admin & Leadership Profile' : 'Volunteer Account') : isSignUp ? 'Register Volunteer' : 'Leadership & Volunteer Login'}
-      subtitle="একমুঠো হাসি • এডমিন, সভাপতি ও স্বেচ্ছাসেবক লগইন পোর্টাল"
+      title={user ? (isAdmin ? 'Admin & Leadership Profile' : 'Staff Profile') : isSignUp ? 'Register Staff Account' : 'Staff & Volunteer Sign In'}
+      subtitle="একমুঠো হাসি • কর্মী ও স্বেচ্ছাসেবক লগইন পোর্টাল"
       maxWidth="max-w-md"
     >
       <div className="space-y-4">
@@ -164,7 +176,7 @@ export const AuthModal = ({ isOpen, onClose, onOpenConnectModal }) => {
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="w-full py-2.5 rounded-xl font-bold text-xs sm:text-sm text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition"
+                className="w-full py-2.5 rounded-xl font-bold text-xs sm:text-sm text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition cursor-pointer"
               >
                 Sign Out from this Device
               </button>
@@ -172,41 +184,6 @@ export const AuthModal = ({ isOpen, onClose, onOpenConnectModal }) => {
           </div>
         ) : (
           <>
-            {/* Quick Login Button as Admin, President & CEO */}
-            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/15 to-amber-500/10 border-2 border-amber-300/80 shadow-xs space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-xs font-black text-amber-900 uppercase tracking-wider">
-                  <ShieldCheck className="w-4 h-4 text-amber-700" />
-                  <span>Admin & Leadership Access</span>
-                </div>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-200 text-amber-800">
-                  Authorized
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-600 leading-snug">
-                <strong>Engr. Arman Hossain</strong> (Admin, President & CEO)
-                <span className="block font-mono text-[10px] text-slate-500">arman@ekmuthohashi.org</span>
-              </p>
-              <button
-                type="button"
-                onClick={handleQuickAdminLogin}
-                disabled={loading}
-                className="w-full py-2 px-3 rounded-xl text-xs font-black text-white bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 shadow-sm transition flex items-center justify-center gap-1.5 active:scale-98"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-amber-200" />
-                <span>1-Click Login as Engr. Arman Hossain</span>
-              </button>
-            </div>
-
-            {/* Divider */}
-            <div className="relative flex py-1 items-center">
-              <div className="flex-grow border-t border-slate-200"></div>
-              <span className="flex-shrink mx-3 text-[10px] font-bold uppercase text-slate-400">
-                Or Sign In with Credentials
-              </span>
-              <div className="flex-grow border-t border-slate-200"></div>
-            </div>
-
             {errorMsg && (
               <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
@@ -239,16 +216,38 @@ export const AuthModal = ({ isOpen, onClose, onOpenConnectModal }) => {
                 </div>
               )}
 
+              {/* Show only picture and name top of email box when email is registered */}
+              {!isSignUp && registeredUser && (
+                <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-teal-50 border border-teal-200 transition-all duration-200 animate-in fade-in slide-in-from-top-2">
+                  <div className="w-11 h-11 rounded-full overflow-hidden bg-teal-600 text-white border-2 border-teal-500 shrink-0 flex items-center justify-center font-bold text-sm shadow-xs">
+                    {registeredUser.avatarUrl ? (
+                      <img
+                        src={registeredUser.avatarUrl}
+                        alt={registeredUser.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span>{registeredUser.initial}</span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-extrabold text-slate-900 text-sm leading-tight truncate">
+                      {registeredUser.name}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                   <Mail className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Email Address *</span>
+                  <span>Email or Username *</span>
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="staff@ekmuthohashi.org"
+                  placeholder="Enter your email address"
                   className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-teal-500 font-mono"
                   required
                 />
