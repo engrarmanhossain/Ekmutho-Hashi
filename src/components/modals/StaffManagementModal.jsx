@@ -169,33 +169,43 @@ export const StaffManagementModal = ({ isOpen, onClose, onEditStaffProfile }) =>
                   key={cand.id}
                   className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
                 >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-extrabold text-slate-900 text-sm">
-                        {cand.fullName}
-                      </span>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-200 text-amber-900 uppercase">
-                        Awaiting Admin Permission
-                      </span>
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-amber-100 border border-amber-300 shrink-0 flex items-center justify-center font-bold text-sm text-amber-900 mt-0.5">
+                      {cand.avatarUrl ? (
+                        <img src={cand.avatarUrl} alt={cand.fullName} className="w-full h-full object-cover" />
+                      ) : (
+                        cand.fullName[0]?.toUpperCase() || 'P'
+                      )}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3 text-slate-600 text-[11px]">
-                      <span className="flex items-center gap-1 font-mono">
-                        <Mail className="w-3 h-3 text-slate-400" /> {cand.email}
-                      </span>
-                      <span className="flex items-center gap-1 font-mono">
-                        <Phone className="w-3 h-3 text-slate-400" /> {cand.phone}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-slate-400" /> {cand.area}
-                      </span>
-                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-extrabold text-slate-900 text-sm">
+                          {cand.fullName}
+                        </span>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-200 text-amber-900 uppercase">
+                          Awaiting Admin Permission
+                        </span>
+                      </div>
 
-                    {cand.notes && (
-                      <p className="text-[11px] text-slate-500 italic mt-0.5">
-                        Application note: "{cand.notes}"
-                      </p>
-                    )}
+                      <div className="flex flex-wrap items-center gap-3 text-slate-600 text-[11px]">
+                        <span className="flex items-center gap-1 font-mono">
+                          <Mail className="w-3 h-3 text-slate-400" /> {cand.email}
+                        </span>
+                        <span className="flex items-center gap-1 font-mono">
+                          <Phone className="w-3 h-3 text-slate-400" /> {cand.phone}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-slate-400" /> {cand.area}
+                        </span>
+                      </div>
+
+                      {cand.notes && (
+                        <p className="text-[11px] text-slate-500 italic mt-0.5">
+                          Application note: "{cand.notes}"
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
@@ -264,13 +274,28 @@ export const StaffManagementModal = ({ isOpen, onClose, onEditStaffProfile }) =>
                     return (
                       <tr key={member.id} className="hover:bg-slate-50/80 transition">
                         <td className="py-3 px-3.5">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-slate-900">{member.fullName}</span>
-                            {isChief && <Crown className="w-3.5 h-3.5 text-amber-600 shrink-0" />}
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-100 border border-slate-200 shrink-0 flex items-center justify-center font-bold text-xs">
+                              {member.avatarUrl ? (
+                                <img src={member.avatarUrl} alt={member.fullName} className="w-full h-full object-cover" />
+                              ) : isChief ? (
+                                <span className="w-full h-full bg-amber-500 text-white flex items-center justify-center">👑</span>
+                              ) : (
+                                <span className="w-full h-full bg-teal-600 text-white flex items-center justify-center">
+                                  {member.fullName[0]?.toUpperCase() || 'S'}
+                                </span>
+                              )}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-bold text-slate-900">{member.fullName}</span>
+                                {isChief && <Crown className="w-3.5 h-3.5 text-amber-600 shrink-0" />}
+                              </div>
+                              <span className="text-[11px] text-slate-400 font-mono block">
+                                {member.email} {member.phone !== 'N/A' && `• ${member.phone}`}
+                              </span>
+                            </div>
                           </div>
-                          <span className="text-[11px] text-slate-400 font-mono block">
-                            {member.email} {member.phone !== 'N/A' && `• ${member.phone}`}
-                          </span>
                         </td>
 
                         <td className="py-3 px-3">

@@ -314,7 +314,13 @@ export const Topbar = ({
                 }`}
                 title="Staff Profile & Account Settings"
               >
-                {isUserAdmin && viewMode === 'admin' ? (
+                {currentStaffProfile?.avatarUrl ? (
+                  <img
+                    src={currentStaffProfile.avatarUrl}
+                    alt={user.user_metadata?.full_name || 'Staff'}
+                    className="w-4 h-4 rounded-full object-cover border border-amber-500/50"
+                  />
+                ) : isUserAdmin && viewMode === 'admin' ? (
                   <Crown className="w-3.5 h-3.5 text-amber-700" />
                 ) : (
                   <User className="w-3.5 h-3.5" />

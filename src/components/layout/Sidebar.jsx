@@ -262,8 +262,14 @@ export const Sidebar = ({
               title="Click to view leadership & staff controls"
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-400/40 flex items-center justify-center shrink-0">
-                  {isUserAdmin ? (
+                <div className="w-8 h-8 rounded-lg overflow-hidden bg-amber-500/20 text-amber-300 border border-amber-400/40 flex items-center justify-center shrink-0">
+                  {currentStaffProfile?.avatarUrl ? (
+                    <img
+                      src={currentStaffProfile.avatarUrl}
+                      alt={user?.user_metadata?.full_name || 'Staff'}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : isUserAdmin ? (
                     <Crown className="w-4 h-4 text-amber-400" />
                   ) : (
                     <UserCheck className="w-4 h-4 text-teal-400" />

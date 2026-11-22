@@ -114,6 +114,7 @@ CREATE TABLE IF NOT EXISTS public.staff_members (
   approved_by TEXT,
   approved_at TIMESTAMPTZ,
   notes TEXT,
+  avatar_url TEXT,
   created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW())
 );
 

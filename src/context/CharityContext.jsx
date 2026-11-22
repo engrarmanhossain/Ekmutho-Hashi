@@ -318,7 +318,8 @@ export const CharityProvider = ({ children }) => {
     joinedDate: r.joined_date,
     approvedBy: r.approved_by,
     approvedAt: r.approved_at,
-    notes: r.notes
+    notes: r.notes,
+    avatarUrl: r.avatar_url || null
   });
 
   const mapAppStaffToDb = (s) => ({
@@ -332,7 +333,8 @@ export const CharityProvider = ({ children }) => {
     status: s.status || 'pending',
     joined_date: s.joinedDate || null,
     approved_by: s.approvedBy || null,
-    notes: s.notes || null
+    notes: s.notes || null,
+    avatar_url: s.avatarUrl || null
   });
 
   // Pull data from Supabase Cloud
@@ -740,7 +742,8 @@ export const CharityProvider = ({ children }) => {
           full_name: updatedData.fullName || user.user_metadata?.full_name,
           phone: updatedData.phone || user.user_metadata?.phone,
           area: updatedData.area || user.user_metadata?.area,
-          role: updatedData.role || user.user_metadata?.role
+          role: updatedData.role || user.user_metadata?.role,
+          avatar_url: updatedData.avatarUrl !== undefined ? updatedData.avatarUrl : user.user_metadata?.avatar_url
         }
       };
       setUser(updatedUser);

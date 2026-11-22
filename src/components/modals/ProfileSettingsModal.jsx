@@ -13,7 +13,11 @@ import {
   Users,
   ChevronDown,
   ShieldAlert,
-  UserCog
+  UserCog,
+  Camera,
+  Upload,
+  Trash2,
+  Image as ImageIcon
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { useCharity } from '../../context/CharityContext';
@@ -49,6 +53,7 @@ export const ProfileSettingsModal = ({
   const [status, setStatus] = useState('approved');
   const [area, setArea] = useState('');
   const [notes, setNotes] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState(null);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -70,6 +75,7 @@ export const ProfileSettingsModal = ({
       setStatus(currentStaff.status || 'approved');
       setArea(currentStaff.area || 'Central Hub');
       setNotes(currentStaff.notes || '');
+      setAvatarUrl(currentStaff.avatarUrl || null);
       setPassword('');
       setConfirmPassword('');
       setErrorMsg('');
@@ -78,6 +84,35 @@ export const ProfileSettingsModal = ({
   }, [selectedStaffId, currentStaff, isOpen]);
 
   if (!isOpen) return null;
+
+  const handleAvatarUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setErrorMsg('Please select a valid image file (PNG, JPG, WebP, SVG).');
+      return;
+    }
+
+    if (file.size > 3 * 1024 * 1024) {
+      setErrorMsg('Photo size exceeds 3MB. Please select a smaller photo.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result;
+      if (base64) {
+        setAvatarUrl(base64);
+        setErrorMsg('');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveAvatar = () => {
+    setAvatarUrl(null);
+  };
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -107,7 +142,8 @@ export const ProfileSettingsModal = ({
       role: isUserAdmin ? role : currentStaff.role,
       status: isUserAdmin ? status : currentStaff.status,
       area: area.trim() || 'General Field Team',
-      notes: notes.trim()
+      notes: notes.trim(),
+      avatarUrl: avatarUrl || null
     };
 
     updateStaffProfile(updatedData, currentStaff.id);
@@ -122,7 +158,7 @@ export const ProfileSettingsModal = ({
       isOpen={isOpen}
       onClose={onClose}
       title={isUserAdmin ? "Staff Profile & Permission Settings" : "My Profile Settings"}
-      subtitle={isUserAdmin ? "Engr. Arman Hossain (Admin) • সকল স্টাফ ও স্বেচ্ছাসেবকের প্রোফাইল পারমিশন ও তথ্য নিয়ন্ত্রণ" : "স্বেচ্ছাসেবক প্রোফাইল ও একাউন্ট আপডেট"}
+      subtitle={isUserAdmin ? "Engr. Arman Hossain (Admin) • সকল স্টাফ ও স্বেচ্ছাসেবকের প্রোফাইল ও ছবি নিয়ন্ত্রণ" : "স্বেচ্ছাসেবক প্রোফাইল ও একাউন্ট আপডেট"}
       maxWidth="max-w-xl"
     >
       <form onSubmit={handleSave} className="space-y-4">
@@ -160,37 +196,68 @@ export const ProfileSettingsModal = ({
 
             <p className="text-[10px] text-amber-900/80 flex items-center gap-1">
               <Sparkles className="w-3 h-3 text-amber-600 shrink-0" />
-              <span>You have administrative authority to modify roles, contact details, operational area, and status for this staff member.</span>
+              <span>You have administrative authority to modify profile photo, roles, contact details, operational area, and status for this staff member.</span>
             </p>
           </div>
         )}
 
-        {/* Profile Header Card */}
+        {/* Profile Header & Picture Upload Section */}
         <div
-          className={`p-4 rounded-2xl border flex items-center justify-between gap-3 ${
+          className={`p-4 rounded-2xl border flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 ${
             isChief
               ? 'bg-gradient-to-r from-amber-50 to-amber-100/70 border-amber-300'
               : 'bg-slate-50 border-slate-200'
           }`}
         >
-          <div className="flex items-center gap-3 min-w-0">
-            <div
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl shadow-xs shrink-0 ${
-                isChief
-                  ? 'bg-amber-500 text-white ring-4 ring-amber-300/40'
-                  : 'bg-teal-600 text-white'
-              }`}
-            >
-              {isChief ? <Crown className="w-7 h-7" /> : fullName[0]?.toUpperCase() || 'S'}
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 min-w-0 text-center sm:text-left w-full">
+            {/* Avatar Preview with Camera Overlay */}
+            <div className="relative group shrink-0">
+              <div
+                className={`w-20 h-20 rounded-2xl overflow-hidden border-2 shadow-sm flex items-center justify-center font-black text-2xl relative bg-white ${
+                  isChief ? 'border-amber-400 ring-4 ring-amber-300/40' : 'border-teal-400 ring-4 ring-teal-200/50'
+                }`}
+              >
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt={fullName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : isChief ? (
+                  <div className="w-full h-full bg-gradient-to-br from-amber-500 to-amber-600 text-white flex items-center justify-center">
+                    <Crown className="w-9 h-9" />
+                  </div>
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-teal-600 to-teal-700 text-white flex items-center justify-center">
+                    {fullName[0]?.toUpperCase() || 'S'}
+                  </div>
+                )}
+              </div>
+
+              {/* Upload Overlay Button */}
+              <label
+                className="absolute -bottom-1.5 -right-1.5 p-1.5 rounded-xl bg-slate-900 hover:bg-black text-white shadow-md cursor-pointer transition active:scale-90"
+                title="Upload Profile Picture"
+              >
+                <Camera className="w-4 h-4 text-amber-300" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                />
+              </label>
             </div>
 
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5 truncate">
+            {/* Profile Info & Avatar Actions */}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-center sm:justify-start gap-1.5 truncate">
                 <span className="font-extrabold text-slate-900 text-base truncate">{fullName}</span>
                 {isChief && <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />}
               </div>
               <p className="text-xs text-slate-500 font-mono truncate">{currentStaff?.email}</p>
-              <div className="flex items-center gap-2 mt-1">
+
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-1">
                 <span className="font-mono text-[10px] font-bold text-slate-400">
                   ID: {currentStaff?.staffId || currentStaff?.id}
                 </span>
@@ -205,6 +272,32 @@ export const ProfileSettingsModal = ({
                 >
                   {isChief ? '👑 President & CEO' : status === 'approved' ? '✓ Verified Staff' : status === 'pending' ? 'Pending Approval' : 'Suspended'}
                 </span>
+              </div>
+
+              {/* Picture Action Buttons */}
+              <div className="flex items-center justify-center sm:justify-start gap-2 mt-2.5">
+                <label className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg cursor-pointer shadow-2xs transition">
+                  <Upload className="w-3 h-3 text-teal-600" />
+                  <span>{avatarUrl ? 'Change Photo' : 'Upload Photo'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarUpload}
+                    className="hidden"
+                  />
+                </label>
+
+                {avatarUrl && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveAvatar}
+                    className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                    title="Remove Profile Picture"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    <span>Remove</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
