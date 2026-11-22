@@ -10,12 +10,40 @@ import {
   X,
   Sparkles,
   ShieldCheck,
-  Crown
+  Crown,
+  Building2,
+  LogIn,
+  Eye,
+  UserCheck
 } from 'lucide-react';
 import { useCharity } from '../../context/CharityContext';
 
-export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
-  const { campaigns, donors, beneficiaries, inventory, expenses } = useCharity();
+export const Sidebar = ({
+  activeTab,
+  setActiveTab,
+  isOpen,
+  setIsOpen,
+  onOpenProfileSettings,
+  onOpenStaffManagement,
+  onOpenOrgSettings,
+  onOpenAuthModal
+}) => {
+  const {
+    campaigns,
+    donors,
+    beneficiaries,
+    inventory,
+    expenses,
+    staff,
+    user,
+    orgSettings,
+    viewMode,
+    permissions,
+    currentStaffProfile,
+    isUserAdmin
+  } = useCharity();
+
+  const pendingStaffCount = staff ? staff.filter(s => s.status === 'pending').length : 0;
 
   const navItems = [
     {
@@ -86,26 +114,37 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
         } no-print`}
       >
         {/* Brand Header */}
-        <div className="p-5 border-b border-slate-800/80 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="p-4 border-b border-slate-800/80 flex items-center justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Dynamic Org Logo */}
             <div className="relative w-12 h-12 rounded-xl bg-white p-1 shadow-md border border-amber-400/40 shrink-0 overflow-hidden flex items-center justify-center">
               <img
-                src="/logo.png"
-                alt="Ekmutho Hashi Logo"
+                src={orgSettings?.logoUrl || '/logo.png'}
+                alt={orgSettings?.name || 'Ekmutho Hashi'}
                 className="w-full h-full object-contain"
               />
             </div>
-            <div>
+
+            {/* Dynamic Org Title */}
+            <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <h1 className="font-extrabold text-base tracking-tight text-white leading-tight">
-                  Ekmutho Hashi
+                <h1 className="font-extrabold text-sm tracking-tight text-white leading-tight truncate">
+                  {orgSettings?.name || 'Ekmutho Hashi'}
                 </h1>
-                <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-400/30 shrink-0">
                   BD
                 </span>
               </div>
-              <p className="text-xs text-amber-200/90 font-medium font-sans">একমুঠো হাসি</p>
-              <p className="text-[11px] text-slate-400">Charity & Relief Distribution</p>
+              <p className="text-xs text-amber-200/90 font-medium font-sans truncate">
+                {orgSettings?.banglaName || 'একমুঠো হাসি'}
+              </p>
+              <p className="text-[10px] text-slate-400 truncate">
+                {viewMode === 'admin'
+                  ? 'Admin Master Control'
+                  : viewMode === 'staff'
+                  ? 'Volunteer Field Portal'
+                  : 'Public Relief Ledger'}
+              </p>
             </div>
           </div>
 
@@ -117,9 +156,40 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
           </button>
         </div>
 
+        {/* View Mode Indicator Banner in Sidebar */}
+        <div className="px-3 pt-3">
+          <div
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center justify-between border ${
+              viewMode === 'admin'
+                ? 'bg-amber-500/15 border-amber-400/30 text-amber-300'
+                : viewMode === 'staff'
+                ? 'bg-teal-500/15 border-teal-400/30 text-teal-300'
+                : 'bg-slate-800/80 border-slate-700 text-slate-300'
+            }`}
+          >
+            <span className="flex items-center gap-1.5">
+              {viewMode === 'admin' && <Crown className="w-3.5 h-3.5 text-amber-400" />}
+              {viewMode === 'staff' && <UserCheck className="w-3.5 h-3.5 text-teal-400" />}
+              {viewMode === 'public' && <Eye className="w-3.5 h-3.5 text-slate-400" />}
+              <span className="capitalize">{viewMode} Mode</span>
+            </span>
+
+            {permissions.canManageOrg && onOpenOrgSettings && (
+              <button
+                type="button"
+                onClick={onOpenOrgSettings}
+                className="p-1 text-slate-400 hover:text-amber-300 transition"
+                title="Change Org Name & Logo"
+              >
+                <Building2 className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Navigation Links */}
-        <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
-          <div className="px-3 pb-2 text-[11px] font-bold tracking-wider uppercase text-slate-400/90">
+        <nav className="flex-1 px-3 py-3 space-y-1.5 overflow-y-auto">
+          <div className="px-3 pb-1 text-[10px] font-bold tracking-wider uppercase text-slate-400/90">
             Navigation Menu
           </div>
 
@@ -134,7 +204,7 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
                   setActiveTab(item.id);
                   setIsOpen(false);
                 }}
-                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-left font-medium text-sm transition-all duration-150 ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left font-medium text-sm transition-all duration-150 ${
                   isActive
                     ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-950/40 ring-1 ring-emerald-400/30'
                     : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'
@@ -142,14 +212,14 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <Icon
-                    className={`w-5 h-5 shrink-0 transition ${
+                    className={`w-4 h-4 shrink-0 transition ${
                       isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'
                     }`}
                   />
                   <div className="truncate">
                     <span className="block leading-snug">{item.label}</span>
                     <span
-                      className={`block text-[11px] leading-tight ${
+                      className={`block text-[10px] leading-tight ${
                         isActive ? 'text-emerald-100 font-normal' : 'text-slate-400 font-normal'
                       }`}
                     >
@@ -175,30 +245,78 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
         </nav>
 
         {/* Leadership & Verification Footer */}
-        <div className="p-4 border-t border-slate-800/80 bg-slate-950/40 space-y-2.5">
-          <div className="p-2.5 rounded-xl bg-slate-800/80 border border-amber-500/30 flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-400/40 flex items-center justify-center shrink-0">
-              <Crown className="w-4 h-4 text-amber-400" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-extrabold text-white truncate">Engr. Arman Hossain</p>
-              <p className="text-[10px] text-amber-300 font-semibold truncate">Admin, President & CEO</p>
-            </div>
-          </div>
+        <div className="p-3.5 border-t border-slate-800/80 bg-slate-950/40 space-y-2">
+          {/* Authenticated Staff / Admin Card */}
+          {user ? (
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                if (isUserAdmin && onOpenStaffManagement) {
+                  onOpenStaffManagement();
+                } else if (onOpenProfileSettings) {
+                  onOpenProfileSettings();
+                }
+              }}
+              className="w-full text-left p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-amber-500/30 flex items-center justify-between gap-2.5 transition group cursor-pointer"
+              title="Click to view leadership & staff controls"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-400/40 flex items-center justify-center shrink-0">
+                  {isUserAdmin ? (
+                    <Crown className="w-4 h-4 text-amber-400" />
+                  ) : (
+                    <UserCheck className="w-4 h-4 text-teal-400" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-extrabold text-white truncate group-hover:text-amber-200">
+                    {isUserAdmin
+                      ? orgSettings?.president || 'Engr. Arman Hossain'
+                      : user?.user_metadata?.full_name || 'Staff Member'}
+                  </p>
+                  <p className="text-[10px] text-amber-300 font-semibold truncate">
+                    {isUserAdmin
+                      ? orgSettings?.designation || 'Admin, President & CEO'
+                      : currentStaffProfile?.role || 'Field Volunteer'}
+                  </p>
+                </div>
+              </div>
 
-          <div className="p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/60 space-y-1">
-            <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-400">
-              <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-              <span>100% Transparent Ledger</span>
+              {isUserAdmin && pendingStaffCount > 0 && (
+                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white animate-pulse shrink-0">
+                  {pendingStaffCount}
+                </span>
+              )}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                onOpenAuthModal && onOpenAuthModal();
+              }}
+              className="w-full p-2.5 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600 text-white flex items-center justify-center gap-2 text-xs font-bold shadow-xs transition"
+            >
+              <LogIn className="w-4 h-4" />
+              <span>Volunteer / Staff Login</span>
+            </button>
+          )}
+
+          <div className="p-2 rounded-xl bg-slate-800/50 border border-slate-700/60 space-y-0.5">
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold text-emerald-400">
+              <ShieldCheck className="w-3 h-3 shrink-0" />
+              <span>100% Transparent Relief Ledger</span>
             </div>
-            <p className="text-[10px] text-slate-400 leading-normal">
-              Direct relief aid to underprivileged hands across Bangladesh.
+            <p className="text-[9px] text-slate-400 leading-tight">
+              Community funds & Ramadan grocery kits directly in poor families' hands.
             </p>
           </div>
-          <div className="flex items-center justify-between text-[10px] text-slate-400 px-1 pt-0.5">
-            <span>Ekmutho Hashi v2.0</span>
+
+          <div className="flex items-center justify-between text-[9px] text-slate-400 px-1">
+            <span>{orgSettings?.name || 'Ekmutho Hashi'}</span>
             <span className="flex items-center gap-1 text-amber-400">
-              <Sparkles className="w-3 h-3" /> Ramadan 1447H
+              <Sparkles className="w-2.5 h-2.5" /> Ramadan 1447H
             </span>
           </div>
         </div>

@@ -566,3 +566,89 @@ export const initialExpenses = [
     isDistribution: true
   }
 ];
+
+export const initialStaff = [
+  {
+    id: 'STAFF-001',
+    staffId: 'EH-STAFF-001',
+    fullName: 'Engr. Arman Hossain',
+    email: 'arman@ekmuthohashi.org',
+    phone: '01711002233',
+    role: 'Admin, President & CEO',
+    area: 'Central Management & HQ',
+    status: 'approved',
+    joinedDate: '2025-01-01',
+    notes: 'Founder, President & Chief Executive Officer of Ekmutho Hashi.',
+    approvedBy: 'Founder / Executive Board'
+  },
+  {
+    id: 'STAFF-002',
+    staffId: 'EH-STAFF-002',
+    fullName: 'Tanvir Ahmed',
+    email: 'tanvir@ekmuthohashi.org',
+    phone: '01712001122',
+    role: 'Field Distribution Coordinator',
+    area: 'Mirpur & Kallyanpur Hub',
+    status: 'approved',
+    joinedDate: '2026-01-15',
+    notes: 'Direct coordination of field food distribution lines and volunteer tokens.',
+    approvedBy: 'Engr. Arman Hossain'
+  },
+  {
+    id: 'STAFF-003',
+    staffId: 'EH-STAFF-003',
+    fullName: 'Rafiqul Islam',
+    email: 'rafiq@ekmuthohashi.org',
+    phone: '01819334455',
+    role: 'Logistics & Wholesale Procurement',
+    area: 'Moulvibazar & Central Storage',
+    status: 'approved',
+    joinedDate: '2026-02-01',
+    notes: 'Handles bulk market purchases, porter labour, and pickup van logistics.',
+    approvedBy: 'Engr. Arman Hossain'
+  },
+  {
+    id: 'STAFF-004',
+    staffId: 'EH-STAFF-004',
+    fullName: 'Sadik Hasan',
+    email: 'sadik@ekmuthohashi.org',
+    phone: '01911447788',
+    role: 'Area Survey & Verification Lead',
+    area: 'Rayerbazar & Geneva Camp',
+    status: 'approved',
+    joinedDate: '2026-02-10',
+    notes: 'Door-to-door survey and verification of distressed families.',
+    approvedBy: 'Engr. Arman Hossain'
+  },
+  {
+    id: 'STAFF-005',
+    staffId: 'EH-STAFF-005',
+    fullName: 'Kazi Farhan',
+    email: 'farhan.volunteer@gmail.com',
+    phone: '01622334455',
+    role: 'Field Volunteer',
+    area: 'Mohammadpur Ward 33',
+    status: 'pending',
+    joinedDate: '2026-03-02',
+    notes: 'Applied online to assist with Ramadan Iftar packaging on weekends.',
+    approvedBy: null
+  }
+];
+
+export const initialOrgSettings = {
+  name: 'Ekmutho Hashi',
+  banglaName: 'একমুঠো হাসি',
+  slogan: 'হৃদয় দিয়ে মানুষের পাশে — একমুঠো হাসি',
+  logoUrl: '/logo.png',
+  email: 'arman@ekmuthohashi.org',
+  phone: '+880 1711-002233',
+  address: 'Mirpur-1 & Kallyanpur Hub, Dhaka-1216, Bangladesh',
+  regNumber: 'REG-BD-2026-EHMH',
+  president: 'Engr. Arman Hossain',
+  designation: 'Admin, President & CEO',
+  establishedYear: '2025',
+  bkashNumber: '01711-002233 (Merchant)',
+  nagadNumber: '01711-002233 (Personal)',
+  rocketNumber: '01711-002233-7',
+  bankDetails: 'Islami Bank Bangladesh Ltd, Mirpur Branch, A/C: 2050-1122-3344'
+};

@@ -30,7 +30,8 @@ export const BeneficiariesView = ({
     beneficiaries,
     addBeneficiary,
     updateBeneficiary,
-    deleteBeneficiary
+    deleteBeneficiary,
+    permissions
   } = useCharity();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -184,14 +185,16 @@ export const BeneficiariesView = ({
             <span>Export CSV</span>
           </button>
 
-          <button
-            type="button"
-            onClick={openAddModal}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition"
-          >
-            <Plus className="w-4 h-4" />
-            <span>+ Register New Family</span>
-          </button>
+          {permissions.canAddBeneficiary && (
+            <button
+              type="button"
+              onClick={openAddModal}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition active:scale-98"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ Register New Family</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -371,14 +374,16 @@ export const BeneficiariesView = ({
                         </button>
 
                         {/* Distribute Aid button */}
-                        <button
-                          type="button"
-                          onClick={() => onOpenDistributeAid(b.id)}
-                          className="p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition"
-                          title="Distribute Aid to this family"
-                        >
-                          <Gift className="w-4 h-4" />
-                        </button>
+                        {permissions.canDistributeAid && (
+                          <button
+                            type="button"
+                            onClick={() => onOpenDistributeAid(b.id)}
+                            className="p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition"
+                            title="Distribute Aid to this family"
+                          >
+                            <Gift className="w-4 h-4" />
+                          </button>
+                        )}
 
                         {/* View full details */}
                         <button
@@ -391,24 +396,28 @@ export const BeneficiariesView = ({
                         </button>
 
                         {/* Edit */}
-                        <button
-                          type="button"
-                          onClick={() => openEditModal(b)}
-                          className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
-                          title="Edit details"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
+                        {permissions.canAddBeneficiary && (
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(b)}
+                            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
+                            title="Edit details"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
 
                         {/* Delete */}
-                        <button
-                          type="button"
-                          onClick={() => setBeneficiaryToDelete(b)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                          title="Delete beneficiary"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        {permissions.isAdmin && (
+                          <button
+                            type="button"
+                            onClick={() => setBeneficiaryToDelete(b)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                            title="Delete beneficiary"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

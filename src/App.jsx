@@ -20,6 +20,10 @@ import { BeneficiaryTokenModal } from './components/modals/BeneficiaryTokenModal
 import { FamilyDetailsModal } from './components/modals/FamilyDetailsModal';
 import { SupabaseConnectModal } from './components/modals/SupabaseConnectModal';
 import { AuthModal } from './components/modals/AuthModal';
+import { ProfileSettingsModal } from './components/modals/ProfileSettingsModal';
+import { StaffManagementModal } from './components/modals/StaffManagementModal';
+import { OrgSettingsModal } from './components/modals/OrgSettingsModal';
+import { PublicDonationModal } from './components/modals/PublicDonationModal';
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -33,6 +37,10 @@ function AppContent() {
   // Cloud & Auth Modals
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isStaffManagementOpen, setIsStaffManagementOpen] = useState(false);
+  const [isOrgSettingsOpen, setIsOrgSettingsOpen] = useState(false);
+  const [isPublicDonationOpen, setIsPublicDonationOpen] = useState(false);
 
   // Document Viewers states
   const [receiptDonor, setReceiptDonor] = useState(null);
@@ -57,6 +65,10 @@ function AppContent() {
       onOpenDistributeAid={() => handleOpenDistributeAid(null)}
       onOpenAuthModal={() => setIsAuthModalOpen(true)}
       onOpenConnectModal={() => setIsConnectModalOpen(true)}
+      onOpenProfileSettings={() => setIsProfileModalOpen(true)}
+      onOpenStaffManagement={() => setIsStaffManagementOpen(true)}
+      onOpenOrgSettings={() => setIsOrgSettingsOpen(true)}
+      onOpenPublicDonation={() => setIsPublicDonationOpen(true)}
     >
       {/* Dynamic View rendering */}
       {activeTab === 'dashboard' && (
@@ -154,6 +166,30 @@ function AppContent() {
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         onOpenConnectModal={() => setIsConnectModalOpen(true)}
+      />
+
+      {/* Staff Profile Settings & Admin Management Modals */}
+      <ProfileSettingsModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        onOpenStaffManagement={() => setIsStaffManagementOpen(true)}
+      />
+
+      <StaffManagementModal
+        isOpen={isStaffManagementOpen}
+        onClose={() => setIsStaffManagementOpen(false)}
+      />
+
+      {/* Admin Organization & Branding Settings Modal */}
+      <OrgSettingsModal
+        isOpen={isOrgSettingsOpen}
+        onClose={() => setIsOrgSettingsOpen(false)}
+      />
+
+      {/* Public Guest Donation Information & Pledge Modal */}
+      <PublicDonationModal
+        isOpen={isPublicDonationOpen}
+        onClose={() => setIsPublicDonationOpen(false)}
       />
     </Layout>
   );

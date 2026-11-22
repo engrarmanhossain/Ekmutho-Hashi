@@ -100,6 +100,23 @@ CREATE TABLE IF NOT EXISTS public.expenses (
   created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW())
 );
 
+-- 7. STAFF & VOLUNTEERS TABLE (WITH ADMIN APPROVALS)
+CREATE TABLE IF NOT EXISTS public.staff_members (
+  id TEXT PRIMARY KEY,
+  staff_id TEXT,
+  full_name TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  phone TEXT,
+  role TEXT DEFAULT 'Field Volunteer',
+  area TEXT,
+  status TEXT DEFAULT 'pending', -- 'pending', 'approved', 'rejected'
+  joined_date TEXT,
+  approved_by TEXT,
+  approved_at TIMESTAMPTZ,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
 -- Enable Row Level Security (RLS) on all tables
 ALTER TABLE public.campaigns ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.inventory ENABLE ROW LEVEL SECURITY;
@@ -107,9 +124,9 @@ ALTER TABLE public.packages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.donors ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.beneficiaries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.staff_members ENABLE ROW LEVEL SECURITY;
 
 -- Allow read & write access for authenticated users (volunteers) & anon keys
--- You can tighten policies to authenticated only when volunteer accounts are created.
 CREATE POLICY "Allow public read access for campaigns" ON public.campaigns FOR SELECT USING (true);
 CREATE POLICY "Allow public write access for campaigns" ON public.campaigns FOR ALL USING (true);
 
@@ -128,6 +145,9 @@ CREATE POLICY "Allow public write access for beneficiaries" ON public.beneficiar
 CREATE POLICY "Allow public read access for expenses" ON public.expenses FOR SELECT USING (true);
 CREATE POLICY "Allow public write access for expenses" ON public.expenses FOR ALL USING (true);
 
+CREATE POLICY "Allow public read access for staff_members" ON public.staff_members FOR SELECT USING (true);
+CREATE POLICY "Allow public write access for staff_members" ON public.staff_members FOR ALL USING (true);
+
 -- Enable Realtime publication so multi-phone updates sync live
 ALTER PUBLICATION supabase_realtime ADD TABLE public.campaigns;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.inventory;
@@ -135,3 +155,4 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.packages;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.donors;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.beneficiaries;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.expenses;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.staff_members;

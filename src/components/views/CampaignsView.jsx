@@ -26,7 +26,8 @@ export const CampaignsView = () => {
     beneficiaries,
     addCampaign,
     updateCampaign,
-    deleteCampaign
+    deleteCampaign,
+    permissions
   } = useCharity();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -111,14 +112,16 @@ export const CampaignsView = () => {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={openAddModal}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition"
-        >
-          <Plus className="w-4 h-4" />
-          <span>+ Create New Campaign</span>
-        </button>
+        {permissions.canManageCampaigns && (
+          <button
+            type="button"
+            onClick={openAddModal}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition active:scale-98"
+          >
+            <Plus className="w-4 h-4" />
+            <span>+ Create New Campaign</span>
+          </button>
+        )}
       </div>
 
       {/* Campaigns Grid */}
@@ -177,26 +180,28 @@ export const CampaignsView = () => {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => openEditModal(camp)}
-                      className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
-                      title="Edit campaign"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    {campaigns.length > 1 && (
+                  {permissions.canManageCampaigns && (
+                    <div className="flex items-center gap-1">
                       <button
                         type="button"
-                        onClick={() => setCampaignToDelete(camp)}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                        title="Delete campaign"
+                        onClick={() => openEditModal(camp)}
+                        className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
+                        title="Edit campaign"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Edit2 className="w-3.5 h-3.5" />
                       </button>
-                    )}
-                  </div>
+                      {campaigns.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setCampaignToDelete(camp)}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                          title="Delete campaign"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">

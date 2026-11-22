@@ -52,7 +52,10 @@ export const DashboardView = ({
     filteredExpenses,
     inventory,
     getProductStock,
-    beneficiaries
+    beneficiaries,
+    orgSettings,
+    viewMode,
+    permissions
   } = useCharity();
 
   const currentCamp = campaigns.find(c => c.id === selectedCampaign);
@@ -134,35 +137,47 @@ export const DashboardView = ({
           <div className="space-y-2 max-w-xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-xs font-semibold">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              {currentCamp ? currentCamp.name : 'Community Charity Hub • Ramadan 2026'}
+              {currentCamp ? currentCamp.name : `${orgSettings?.name || 'Ekmutho Hashi'} • Ramadan 2026`}
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Ekmutho Hashi <span className="text-amber-400 font-sans">| একমুঠো হাসি</span>
+              {orgSettings?.name || 'Ekmutho Hashi'}{' '}
+              <span className="text-amber-400 font-sans">| {orgSettings?.banglaName || 'একমুঠো হাসি'}</span>
             </h1>
             <p className="text-sm text-slate-300 leading-relaxed">
-              Transparent, grassroots relief distribution dashboard for underprivileged families in Bangladesh.
-              Tracking every Taka of donor contributions directly to food packs on the ground.
+              {orgSettings?.slogan || 'Transparent, grassroots relief distribution dashboard for underprivileged families in Bangladesh. Tracking every Taka of donor contributions directly to food packs on the ground.'}
             </p>
           </div>
 
-          {/* Quick Buttons */}
+          {/* Quick Buttons or Public Mode Information */}
           <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={onOpenAddFund}
-              className="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-950/40 transition flex items-center gap-2"
-            >
-              <PlusCircle className="w-4 h-4" />
-              <span>Record Donation</span>
-            </button>
-            <button
-              type="button"
-              onClick={onOpenDistributeAid}
-              className="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-teal-500 hover:bg-teal-600 text-white shadow-lg shadow-teal-950/40 transition flex items-center gap-2"
-            >
-              <Gift className="w-4 h-4" />
-              <span>Distribute Aid</span>
-            </button>
+            {permissions.canAddFund && (
+              <button
+                type="button"
+                onClick={onOpenAddFund}
+                className="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-950/40 transition flex items-center gap-2 active:scale-98"
+              >
+                <PlusCircle className="w-4 h-4" />
+                <span>Record Donation</span>
+              </button>
+            )}
+
+            {permissions.canDistributeAid && (
+              <button
+                type="button"
+                onClick={onOpenDistributeAid}
+                className="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-teal-500 hover:bg-teal-600 text-white shadow-lg shadow-teal-950/40 transition flex items-center gap-2 active:scale-98"
+              >
+                <Gift className="w-4 h-4" />
+                <span>Distribute Aid</span>
+              </button>
+            )}
+
+            {permissions.isPublic && (
+              <div className="px-4 py-2.5 rounded-xl font-semibold text-xs bg-white/10 border border-white/20 text-slate-200 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span>100% Verified Public Relief Ledger</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

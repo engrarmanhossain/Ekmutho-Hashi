@@ -26,7 +26,8 @@ export const ReportsView = () => {
     expenses,
     inventory,
     beneficiaries,
-    getProductStock
+    getProductStock,
+    orgSettings
   } = useCharity();
 
   const [dateFrom, setDateFrom] = useState('');
@@ -398,12 +399,12 @@ export const ReportsView = () => {
         {/* Printable Header */}
         <div className="flex items-start justify-between border-b-2 border-slate-900 pb-5">
           <div className="flex items-center gap-3">
-            <div className="w-16 h-16 rounded-xl border border-slate-300 p-1">
-              <img src="/logo.png" alt="Ekmutho Hashi" className="w-full h-full object-contain" />
+            <div className="w-16 h-16 rounded-xl border border-slate-300 p-1 flex items-center justify-center bg-white">
+              <img src={orgSettings?.logoUrl || '/logo.png'} alt={orgSettings?.name || 'Ekmutho Hashi'} className="w-full h-full object-contain" />
             </div>
             <div>
-              <h2 className="text-2xl font-black tracking-tight">Ekmutho Hashi | একমুঠো হাসি</h2>
-              <p className="text-xs text-slate-600">Community Charity & Relief Organization, Bangladesh</p>
+              <h2 className="text-2xl font-black tracking-tight">{orgSettings?.name || 'Ekmutho Hashi'} | {orgSettings?.banglaName || 'একমুঠো হাসি'}</h2>
+              <p className="text-xs text-slate-600">{orgSettings?.slogan || 'Community Charity & Relief Organization, Bangladesh'}</p>
               <p className="text-xs font-semibold text-teal-800">
                 Official Financial Audit & Relief Distribution Statement
               </p>
@@ -502,9 +503,9 @@ export const ReportsView = () => {
 
           <div className="text-center">
             <div className="w-44 border-b border-slate-900 mb-1" />
-            <p className="font-black text-slate-900 text-sm">Engr. Arman Hossain</p>
-            <p className="text-[11px] font-bold text-teal-800">Admin, President & CEO</p>
-            <p className="text-[10px] text-slate-500">Ekmutho Hashi</p>
+            <p className="font-black text-slate-900 text-sm">{orgSettings?.president || 'Engr. Arman Hossain'}</p>
+            <p className="text-[11px] font-bold text-teal-800">{orgSettings?.designation || 'Admin, President & CEO'}</p>
+            <p className="text-[10px] text-slate-500">{orgSettings?.name || 'Ekmutho Hashi'}</p>
           </div>
         </div>
       </div>

@@ -3,7 +3,7 @@ import { Printer, X, ShieldCheck } from 'lucide-react';
 import { useCharity } from '../../context/CharityContext';
 
 export const BeneficiaryTokenModal = ({ isOpen, onClose, beneficiary }) => {
-  const { campaigns, selectedCampaign } = useCharity();
+  const { campaigns, selectedCampaign, orgSettings } = useCharity();
 
   if (!isOpen || !beneficiary) return null;
 
@@ -56,18 +56,18 @@ export const BeneficiaryTokenModal = ({ isOpen, onClose, beneficiary }) => {
               {/* Header */}
               <div className="flex items-center justify-between border-b border-teal-200 pb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-12 h-12 rounded-lg overflow-hidden border border-amber-300 bg-white p-0.5 shrink-0">
+                  <div className="w-12 h-12 rounded-lg overflow-hidden border border-amber-300 bg-white p-0.5 shrink-0 flex items-center justify-center">
                     <img
-                      src="/logo.png"
-                      alt="Logo"
+                      src={orgSettings?.logoUrl || '/logo.png'}
+                      alt={orgSettings?.name || 'Ekmutho Hashi'}
                       className="w-full h-full object-contain"
                     />
                   </div>
                   <div>
                     <h3 className="text-base font-extrabold text-slate-900 leading-tight">
-                      Ekmutho Hashi
+                      {orgSettings?.name || 'Ekmutho Hashi'}
                     </h3>
-                    <p className="text-xs font-bold text-amber-600">একমুঠো হাসি • ত্রাণ টোকেন</p>
+                    <p className="text-xs font-bold text-amber-600">{orgSettings?.banglaName || 'একমুঠো হাসি'} • ত্রাণ টোকেন</p>
                     <p className="text-[10px] text-slate-500">Relief Distribution Card</p>
                   </div>
                 </div>
@@ -177,8 +177,8 @@ export const BeneficiaryTokenModal = ({ isOpen, onClose, beneficiary }) => {
                 </div>
                 <div className="text-center">
                   <div className="w-36 border-b border-slate-400 mb-1" />
-                  <span className="font-bold text-slate-800 block">Engr. Arman Hossain</span>
-                  <span className="text-[10px] text-slate-500 font-semibold block">Admin, President & CEO</span>
+                  <span className="font-bold text-slate-800 block">{orgSettings?.president || 'Engr. Arman Hossain'}</span>
+                  <span className="text-[10px] text-slate-500 font-semibold block">{orgSettings?.designation || 'Admin, President & CEO'}</span>
                 </div>
               </div>
             </div>

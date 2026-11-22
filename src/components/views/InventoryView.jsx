@@ -27,7 +27,8 @@ export const InventoryView = ({ onOpenAddExpense }) => {
     deleteProduct,
     addPackage,
     updatePackage,
-    deletePackage
+    deletePackage,
+    permissions
   } = useCharity();
 
   // Active sub-tab: 'products' | 'packages'
@@ -225,24 +226,26 @@ export const InventoryView = ({ onOpenAddExpense }) => {
             <span>Export Stock CSV</span>
           </button>
 
-          {activeTab === 'products' ? (
-            <button
-              type="button"
-              onClick={openAddProductModal}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition"
-            >
-              <Plus className="w-4 h-4" />
-              <span>+ Add New Product</span>
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={openAddPkgModal}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-amber-600 hover:bg-amber-700 shadow-sm transition"
-            >
-              <Plus className="w-4 h-4" />
-              <span>+ Build New Package</span>
-            </button>
+          {permissions.canManageInventory && (
+            activeTab === 'products' ? (
+              <button
+                type="button"
+                onClick={openAddProductModal}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition active:scale-98"
+              >
+                <Plus className="w-4 h-4" />
+                <span>+ Add New Product</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={openAddPkgModal}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-amber-600 hover:bg-amber-700 shadow-sm transition active:scale-98"
+              >
+                <Plus className="w-4 h-4" />
+                <span>+ Build New Package</span>
+              </button>
+            )
           )}
         </div>
       </div>
@@ -353,22 +356,26 @@ export const InventoryView = ({ onOpenAddExpense }) => {
 
                         <td className="py-3.5 px-4 text-right">
                           <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => openEditProductModal(item)}
-                              className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
-                              title="Edit item"
-                            >
-                              <Edit2 className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setProdToDelete(item)}
-                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                              title="Delete item"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                            {permissions.canManageInventory && (
+                              <button
+                                type="button"
+                                onClick={() => openEditProductModal(item)}
+                                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
+                                title="Edit item"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                            {permissions.isAdmin && (
+                              <button
+                                type="button"
+                                onClick={() => setProdToDelete(item)}
+                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                                title="Delete item"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -424,18 +431,22 @@ export const InventoryView = ({ onOpenAddExpense }) => {
                     </div>
 
                     <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => openEditPkgModal(pkg)}
-                        className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-                      {packages.length > 1 && (
+                      {permissions.canManageInventory && (
+                        <button
+                          type="button"
+                          onClick={() => openEditPkgModal(pkg)}
+                          className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
+                          title="Edit package definition"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {permissions.isAdmin && packages.length > 1 && (
                         <button
                           type="button"
                           onClick={() => setPkgToDelete(pkg)}
                           className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                          title="Delete package"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>

@@ -4,7 +4,7 @@ import { formatCurrency, formatDate, numberToWordsBDT } from '../../utils/format
 import { useCharity } from '../../context/CharityContext';
 
 export const DonorReceiptModal = ({ isOpen, onClose, donor }) => {
-  const { campaigns } = useCharity();
+  const { campaigns, orgSettings } = useCharity();
 
   if (!isOpen || !donor) return null;
 
@@ -56,23 +56,23 @@ export const DonorReceiptModal = ({ isOpen, onClose, donor }) => {
             {/* Header with Logo */}
             <div className="flex items-start justify-between border-b-2 border-emerald-700 pb-5">
               <div className="flex items-center gap-3.5">
-                <div className="w-16 h-16 rounded-xl overflow-hidden border border-amber-300 shadow-sm shrink-0 bg-white p-1">
+                <div className="w-16 h-16 rounded-xl overflow-hidden border border-amber-300 shadow-sm shrink-0 bg-white p-1 flex items-center justify-center">
                   <img
-                    src="/logo.png"
-                    alt="Ekmutho Hashi"
+                    src={orgSettings?.logoUrl || '/logo.png'}
+                    alt={orgSettings?.name || 'Ekmutho Hashi'}
                     className="w-full h-full object-contain"
                   />
                 </div>
                 <div>
                   <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-                    Ekmutho Hashi
+                    {orgSettings?.name || 'Ekmutho Hashi'}
                   </h2>
-                  <p className="text-sm font-bold text-amber-600 font-sans">একমুঠো হাসি</p>
+                  <p className="text-sm font-bold text-amber-600 font-sans">{orgSettings?.banglaName || 'একমুঠো হাসি'}</p>
                   <p className="text-xs text-slate-500">
-                    Community Charity & Relief Organization, Bangladesh
+                    {orgSettings?.slogan || 'Community Charity & Relief Organization, Bangladesh'}
                   </p>
                   <p className="text-[11px] text-slate-400">
-                    Reg / Ref: Volunteer Social Action Network
+                    Reg / Ref: {orgSettings?.regNumber || 'REG-BD-2026-EHMH'}
                   </p>
                 </div>
               </div>
@@ -182,9 +182,9 @@ export const DonorReceiptModal = ({ isOpen, onClose, donor }) => {
 
               <div className="text-center">
                 <div className="w-36 border-b border-slate-400 mb-1.5" />
-                <p className="font-bold text-slate-800">Engr. Arman Hossain</p>
-                <p className="text-[10px] text-slate-600 font-semibold">Admin, President & CEO</p>
-                <p className="text-[9px] text-slate-400">Ekmutho Hashi</p>
+                <p className="font-bold text-slate-800">{orgSettings?.president || 'Engr. Arman Hossain'}</p>
+                <p className="text-[10px] text-slate-600 font-semibold">{orgSettings?.designation || 'Admin, President & CEO'}</p>
+                <p className="text-[9px] text-slate-400">{orgSettings?.name || 'Ekmutho Hashi'}</p>
               </div>
             </div>
 

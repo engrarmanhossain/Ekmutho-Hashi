@@ -71,8 +71,12 @@ export const AuthModal = ({ isOpen, onClose, onOpenConnectModal }) => {
           password,
           fullName: fullName.trim()
         });
-        setSuccessMsg('Account created successfully! You are now logged in as a verified volunteer.');
-        setTimeout(() => onClose(), 1500);
+        if (email.trim().toLowerCase() === 'arman@ekmuthohashi.org') {
+          setSuccessMsg('Logged in as Engr. Arman Hossain (Admin, President & CEO)!');
+        } else {
+          setSuccessMsg('Registration submitted! Awaiting approval by Engr. Arman Hossain (Admin & CEO) before dashboard access.');
+        }
+        setTimeout(() => onClose(), 2200);
       } else {
         await signInVolunteer({
           email: email.trim(),

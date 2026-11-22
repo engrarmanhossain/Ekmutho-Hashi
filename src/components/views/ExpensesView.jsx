@@ -23,7 +23,8 @@ export const ExpensesView = ({ onOpenAddExpense, onOpenDistributeAid }) => {
     expenses,
     campaigns,
     deleteExpense,
-    selectedCampaign
+    selectedCampaign,
+    permissions
   } = useCharity();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -120,23 +121,27 @@ export const ExpensesView = ({ onOpenAddExpense, onOpenDistributeAid }) => {
             <span>Export CSV</span>
           </button>
 
-          <button
-            type="button"
-            onClick={onOpenAddExpense}
-            className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-amber-600 hover:bg-amber-700 shadow-sm transition"
-          >
-            <TrendingDown className="w-4 h-4" />
-            <span>+ Add Expense</span>
-          </button>
+          {permissions.canAddExpense && (
+            <button
+              type="button"
+              onClick={onOpenAddExpense}
+              className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-amber-600 hover:bg-amber-700 shadow-sm transition active:scale-98"
+            >
+              <TrendingDown className="w-4 h-4" />
+              <span>+ Add Expense</span>
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={onOpenDistributeAid}
-            className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition"
-          >
-            <Gift className="w-4 h-4" />
-            <span>+ Distribute Aid</span>
-          </button>
+          {permissions.canDistributeAid && (
+            <button
+              type="button"
+              onClick={onOpenDistributeAid}
+              className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition active:scale-98"
+            >
+              <Gift className="w-4 h-4" />
+              <span>+ Distribute Aid</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -305,14 +310,16 @@ export const ExpensesView = ({ onOpenAddExpense, onOpenDistributeAid }) => {
                       </td>
 
                       <td className="py-3.5 px-4 text-right">
-                        <button
-                          type="button"
-                          onClick={() => setExpenseToDelete(item)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                          title="Delete entry"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {permissions.isAdmin && (
+                          <button
+                            type="button"
+                            onClick={() => setExpenseToDelete(item)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                            title="Delete entry"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );

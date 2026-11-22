@@ -23,7 +23,8 @@ export const DonorsView = ({ onOpenAddFund, onOpenReceipt }) => {
     campaigns,
     deleteDonor,
     selectedCampaign,
-    setSelectedCampaign
+    setSelectedCampaign,
+    permissions
   } = useCharity();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -125,14 +126,16 @@ export const DonorsView = ({ onOpenAddFund, onOpenReceipt }) => {
             <span>Export CSV</span>
           </button>
 
-          <button
-            type="button"
-            onClick={onOpenAddFund}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm transition"
-          >
-            <Plus className="w-4 h-4" />
-            <span>+ Record Donation</span>
-          </button>
+          {permissions.canAddFund && (
+            <button
+              type="button"
+              onClick={onOpenAddFund}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm transition active:scale-98"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ Record Donation</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -323,14 +326,16 @@ export const DonorsView = ({ onOpenAddFund, onOpenReceipt }) => {
                           >
                             <Printer className="w-4 h-4" />
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => setDonorToDelete(donor)}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                            title="Delete record"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          {permissions.isAdmin && (
+                            <button
+                              type="button"
+                              onClick={() => setDonorToDelete(donor)}
+                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                              title="Delete record"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

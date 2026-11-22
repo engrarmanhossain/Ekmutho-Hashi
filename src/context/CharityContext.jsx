@@ -5,7 +5,9 @@ import {
   initialBeneficiaries,
   initialInventory,
   initialPackages,
-  initialExpenses
+  initialExpenses,
+  initialStaff,
+  initialOrgSettings
 } from '../data/initialData';
 import {
   getSupabaseClient,
@@ -49,6 +51,17 @@ export const CharityProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : initialExpenses;
   });
 
+  const [staff, setStaff] = useState(() => {
+    const saved = localStorage.getItem('ekmutho_staff');
+    return saved ? JSON.parse(saved) : initialStaff;
+  });
+
+  // Organization Profile & Branding
+  const [orgSettings, setOrgSettings] = useState(() => {
+    const saved = localStorage.getItem('ekmutho_org_settings');
+    return saved ? JSON.parse(saved) : initialOrgSettings;
+  });
+
   const [selectedCampaign, setSelectedCampaign] = useState(() => {
     return localStorage.getItem('ekmutho_selected_campaign') || 'all';
   });
@@ -61,6 +74,12 @@ export const CharityProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : null;
   });
   const [supabaseCreds, setSupabaseCreds] = useState(getSupabaseCredentials);
+
+  // View Mode: 'admin' | 'staff' | 'public'
+  // When admin is logged in, they can preview 'admin', 'staff', or 'public'
+  const [adminPreviewMode, setAdminPreviewMode] = useState(() => {
+    return localStorage.getItem('ekmutho_admin_preview_mode') || 'admin';
+  });
 
   // Toasts
   const [toasts, setToasts] = useState([]);
@@ -101,6 +120,18 @@ export const CharityProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('ekmutho_expenses', JSON.stringify(expenses));
   }, [expenses]);
+
+  useEffect(() => {
+    localStorage.setItem('ekmutho_staff', JSON.stringify(staff));
+  }, [staff]);
+
+  useEffect(() => {
+    localStorage.setItem('ekmutho_org_settings', JSON.stringify(orgSettings));
+  }, [orgSettings]);
+
+  useEffect(() => {
+    localStorage.setItem('ekmutho_admin_preview_mode', adminPreviewMode);
+  }, [adminPreviewMode]);
 
   useEffect(() => {
     localStorage.setItem('ekmutho_selected_campaign', selectedCampaign);
@@ -275,6 +306,35 @@ export const CharityProvider = ({ children }) => {
     is_distribution: Boolean(e.isDistribution)
   });
 
+  const mapDbStaff = (r) => ({
+    id: r.id,
+    staffId: r.staff_id,
+    fullName: r.full_name,
+    email: r.email,
+    phone: r.phone,
+    role: r.role,
+    area: r.area,
+    status: r.status,
+    joinedDate: r.joined_date,
+    approvedBy: r.approved_by,
+    approvedAt: r.approved_at,
+    notes: r.notes
+  });
+
+  const mapAppStaffToDb = (s) => ({
+    id: s.id,
+    staff_id: s.staffId || null,
+    full_name: s.fullName,
+    email: s.email,
+    phone: s.phone || null,
+    role: s.role || 'Field Volunteer',
+    area: s.area || null,
+    status: s.status || 'pending',
+    joined_date: s.joinedDate || null,
+    approved_by: s.approvedBy || null,
+    notes: s.notes || null
+  });
+
   // Pull data from Supabase Cloud
   const pullFromSupabase = useCallback(async () => {
     const supabase = getSupabaseClient();
@@ -288,14 +348,16 @@ export const CharityProvider = ({ children }) => {
         { data: benData, error: benErr },
         { data: invData, error: invErr },
         { data: pkgData, error: pkgErr },
-        { data: expData, error: expErr }
+        { data: expData, error: expErr },
+        { data: staffData }
       ] = await Promise.all([
         supabase.from('campaigns').select('*').order('created_at', { ascending: false }),
         supabase.from('donors').select('*').order('created_at', { ascending: false }),
         supabase.from('beneficiaries').select('*').order('created_at', { ascending: false }),
         supabase.from('inventory').select('*').order('created_at', { ascending: false }),
         supabase.from('packages').select('*').order('created_at', { ascending: false }),
-        supabase.from('expenses').select('*').order('created_at', { ascending: false })
+        supabase.from('expenses').select('*').order('created_at', { ascending: false }),
+        supabase.from('staff_members').select('*').order('created_at', { ascending: false })
       ]);
 
       if (campErr) throw campErr;
@@ -306,6 +368,7 @@ export const CharityProvider = ({ children }) => {
       if (invData && invData.length > 0) setInventory(invData.map(mapDbInventory));
       if (pkgData && pkgData.length > 0) setPackages(pkgData.map(mapDbPackage));
       if (expData && expData.length > 0) setExpenses(expData.map(mapDbExpense));
+      if (staffData && staffData.length > 0) setStaff(staffData.map(mapDbStaff));
 
       addToast('Data synced from Supabase cloud!', 'success');
     } catch (err) {
@@ -343,6 +406,9 @@ export const CharityProvider = ({ children }) => {
       }
       if (expenses.length > 0) {
         await supabase.from('expenses').upsert(expenses.map(mapAppExpenseToDb));
+      }
+      if (staff.length > 0) {
+        await supabase.from('staff_members').upsert(staff.map(mapAppStaffToDb));
       }
 
       addToast('All local records successfully uploaded to Supabase!', 'success');
@@ -500,33 +566,61 @@ export const CharityProvider = ({ children }) => {
   };
 
   // Volunteer & Leadership Auth Actions
-  const signUpVolunteer = async ({ email, password, fullName }) => {
+  const signUpVolunteer = async ({ email, password, fullName, phone, area, notes }) => {
+    const trimmedEmail = email.trim().toLowerCase();
+    const isAdmin = trimmedEmail === ADMIN_CREDENTIALS.email;
+
+    const newStaffApplicant = {
+      id: `STAFF-${Date.now().toString().slice(-4)}`,
+      staffId: `EH-VOL-${String(staff.length + 1).padStart(3, '0')}`,
+      fullName: fullName.trim(),
+      email: trimmedEmail,
+      phone: phone || 'N/A',
+      role: isAdmin ? 'Admin, President & CEO' : 'Field Volunteer',
+      area: area || 'General Field Team',
+      status: isAdmin ? 'approved' : 'pending',
+      joinedDate: new Date().toISOString().split('T')[0],
+      notes: notes || 'Registered via staff portal',
+      approvedBy: isAdmin ? 'Founder' : null
+    };
+
+    setStaff(prev => [newStaffApplicant, ...prev]);
+
     const supabase = getSupabaseClient();
-    if (!supabase) throw new Error('Supabase client is not configured.');
-
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName
-        }
+    if (supabase) {
+      try {
+        await supabase.auth.signUp({
+          email: trimmedEmail,
+          password,
+          options: {
+            data: {
+              full_name: fullName.trim(),
+              role: newStaffApplicant.role,
+              status: newStaffApplicant.status
+            }
+          }
+        });
+        await supabase.from('staff_members').insert(mapAppStaffToDb(newStaffApplicant));
+      } catch (err) {
+        console.error('Cloud signup error:', err);
       }
-    });
-
-    if (error) throw error;
-    setUser(data.user);
-    if (data.user) {
-      localStorage.setItem('ekmutho_active_user', JSON.stringify(data.user));
     }
-    addToast(`Account created for ${fullName}!`);
-    return data;
+
+    if (isAdmin) {
+      setUser(ADMIN_CREDENTIALS.user);
+      localStorage.setItem('ekmutho_active_user', JSON.stringify(ADMIN_CREDENTIALS.user));
+      addToast('Welcome Engr. Arman Hossain (Admin, President & CEO)!', 'success');
+    } else {
+      addToast('Application submitted! Pending review & approval by Engr. Arman Hossain.', 'info');
+    }
+
+    return newStaffApplicant;
   };
 
   const signInVolunteer = async ({ email, password }) => {
     const trimmedEmail = email.trim().toLowerCase();
 
-    // Check Master Admin, President & CEO credentials
+    // 1. Check Master Admin, President & CEO credentials
     if (trimmedEmail === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
       const adminUser = ADMIN_CREDENTIALS.user;
       setUser(adminUser);
@@ -553,21 +647,51 @@ export const CharityProvider = ({ children }) => {
       return { user: adminUser };
     }
 
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-      throw new Error('Supabase cloud is not connected. Use the Admin credentials to sign in, or connect Supabase in Cloud Settings.');
+    // 2. Check staff roster approval status
+    const staffRecord = staff.find(s => s.email.toLowerCase() === trimmedEmail);
+    if (staffRecord && staffRecord.status === 'pending') {
+      throw new Error('Your staff registration is pending approval by Engr. Arman Hossain (Admin, President & CEO). Please wait for approval.');
+    }
+    if (staffRecord && staffRecord.status === 'rejected') {
+      throw new Error('This account access has been revoked. Please contact the administrator.');
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
+    // 3. Supabase or Local sign in
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
 
-    if (error) throw error;
-    setUser(data.user);
-    localStorage.setItem('ekmutho_active_user', JSON.stringify(data.user));
-    addToast(`Welcome back, ${data.user.user_metadata?.full_name || data.user.email}!`);
-    return data;
+      if (error) throw error;
+
+      if (staffRecord && staffRecord.status !== 'approved' && !data.user.user_metadata?.is_admin) {
+        throw new Error('Your staff registration has not been approved by the Admin yet.');
+      }
+
+      setUser(data.user);
+      localStorage.setItem('ekmutho_active_user', JSON.stringify(data.user));
+      addToast(`Welcome back, ${data.user.user_metadata?.full_name || data.user.email}!`);
+      return data;
+    } else {
+      // Local mode sign in for pre-approved staff
+      if (staffRecord && staffRecord.status === 'approved') {
+        const localUser = {
+          id: staffRecord.id,
+          email: staffRecord.email,
+          user_metadata: {
+            full_name: staffRecord.fullName,
+            role: staffRecord.role
+          }
+        };
+        setUser(localUser);
+        localStorage.setItem('ekmutho_active_user', JSON.stringify(localUser));
+        addToast(`Welcome back, ${staffRecord.fullName}!`);
+        return { user: localUser };
+      }
+      throw new Error('Invalid credentials or account not approved.');
+    }
   };
 
   const signOutVolunteer = async () => {
@@ -581,6 +705,237 @@ export const CharityProvider = ({ children }) => {
     localStorage.removeItem('ekmutho_active_user');
     addToast('Signed out successfully.', 'info');
   };
+
+  // Staff Profile & Permission Actions
+  const updateStaffProfile = async (updatedData) => {
+    const updatedStaffList = staff.map(s => {
+      if (s.email?.toLowerCase() === user?.email?.toLowerCase() || s.id === user?.id) {
+        return {
+          ...s,
+          ...updatedData
+        };
+      }
+      return s;
+    });
+    setStaff(updatedStaffList);
+
+    if (user) {
+      const updatedUser = {
+        ...user,
+        user_metadata: {
+          ...user.user_metadata,
+          full_name: updatedData.fullName || user.user_metadata?.full_name,
+          phone: updatedData.phone || user.user_metadata?.phone,
+          area: updatedData.area || user.user_metadata?.area
+        }
+      };
+      setUser(updatedUser);
+      localStorage.setItem('ekmutho_active_user', JSON.stringify(updatedUser));
+    }
+
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      try {
+        const matching = updatedStaffList.find(s => s.email?.toLowerCase() === user?.email?.toLowerCase());
+        if (matching) {
+          await supabase.from('staff_members').upsert(mapAppStaffToDb(matching));
+        }
+      } catch (err) {
+        console.error('Cloud staff profile update error:', err);
+      }
+    }
+
+    addToast('Profile settings saved successfully!', 'success');
+  };
+
+  const approveStaffMember = async (staffId) => {
+    const target = staff.find(s => s.id === staffId);
+    if (!target) return;
+
+    const approvedItem = {
+      ...target,
+      status: 'approved',
+      approvedBy: 'Engr. Arman Hossain (Admin, President & CEO)',
+      approvedAt: new Date().toISOString()
+    };
+
+    setStaff(prev => prev.map(s => s.id === staffId ? approvedItem : s));
+
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      try {
+        await supabase.from('staff_members').update({
+          status: 'approved',
+          approved_by: 'Engr. Arman Hossain (Admin, President & CEO)',
+          approved_at: new Date().toISOString()
+        }).eq('id', staffId);
+      } catch (err) {
+        console.error('Cloud staff approval error:', err);
+      }
+    }
+
+    addToast(`Approved ${target.fullName}! Access granted.`, 'success');
+  };
+
+  const rejectStaffMember = async (staffId) => {
+    const target = staff.find(s => s.id === staffId);
+    setStaff(prev => prev.filter(s => s.id !== staffId));
+
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      try {
+        await supabase.from('staff_members').delete().eq('id', staffId);
+      } catch (err) {
+        console.error('Cloud staff delete error:', err);
+      }
+    }
+
+    addToast(`Removed ${target?.fullName || 'member'}.`, 'info');
+  };
+
+  const updateStaffRole = async (staffId, newRole) => {
+    setStaff(prev => prev.map(s => s.id === staffId ? { ...s, role: newRole } : s));
+
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      try {
+        await supabase.from('staff_members').update({ role: newRole }).eq('id', staffId);
+      } catch (err) {
+        console.error('Cloud role update error:', err);
+      }
+    }
+
+    addToast(`Role updated to ${newRole}!`, 'success');
+  };
+
+  const addStaffMemberDirectly = async (staffData) => {
+    const nextNum = String(staff.length + 1).padStart(3, '0');
+    const newStaff = {
+      ...staffData,
+      id: `STAFF-${Date.now().toString().slice(-4)}`,
+      staffId: `EH-STAFF-${nextNum}`,
+      status: 'approved',
+      joinedDate: new Date().toISOString().split('T')[0],
+      approvedBy: 'Engr. Arman Hossain (Admin, President & CEO)'
+    };
+
+    setStaff(prev => [newStaff, ...prev]);
+
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      try {
+        await supabase.from('staff_members').insert(mapAppStaffToDb(newStaff));
+      } catch (err) {
+        console.error('Cloud direct staff insert error:', err);
+      }
+    }
+
+    addToast(`Registered ${newStaff.fullName} as ${newStaff.role}!`, 'success');
+    return newStaff;
+  };
+
+  const removeStaffMember = async (staffId) => {
+    const target = staff.find(s => s.id === staffId);
+    if (!target) return;
+    if (target.email === 'arman@ekmuthohashi.org' || target.role.includes('CEO')) {
+      addToast('Cannot remove the Admin, President & CEO account.', 'error');
+      return;
+    }
+
+    setStaff(prev => prev.filter(s => s.id !== staffId));
+
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      try {
+        await supabase.from('staff_members').delete().eq('id', staffId);
+      } catch (err) {
+        console.error('Cloud staff remove error:', err);
+      }
+    }
+
+    addToast(`Removed ${target.fullName} from staff roster.`, 'info');
+  };
+
+  const updateOrgSettings = (newSettings) => {
+    setOrgSettings(prev => ({
+      ...prev,
+      ...newSettings
+    }));
+    addToast('Organization profile & branding updated successfully!', 'success');
+  };
+
+  const resetOrgSettings = () => {
+    setOrgSettings(initialOrgSettings);
+    addToast('Reset organization profile to defaults.', 'info');
+  };
+
+  // View Mode & Roles: Public View, Staff View, Admin View
+  const isUserAdmin = useMemo(() => {
+    return Boolean(
+      user?.user_metadata?.is_admin ||
+      user?.email?.toLowerCase() === 'arman@ekmuthohashi.org'
+    );
+  }, [user]);
+
+  const effectiveViewMode = useMemo(() => {
+    if (!user) return 'public';
+    if (isUserAdmin) {
+      if (adminPreviewMode === 'staff') return 'staff';
+      if (adminPreviewMode === 'public') return 'public';
+      return 'admin';
+    }
+    return 'staff';
+  }, [user, isUserAdmin, adminPreviewMode]);
+
+  const setViewMode = (mode) => {
+    if (!['admin', 'staff', 'public'].includes(mode)) return;
+    if (!isUserAdmin && mode === 'admin') {
+      addToast('Admin view requires President & CEO authorization.', 'error');
+      return;
+    }
+    setAdminPreviewMode(mode);
+    addToast(`Switched view to ${mode.toUpperCase()} VIEW.`, 'info');
+  };
+
+  const currentStaffProfile = useMemo(() => {
+    if (!user) return null;
+    return staff.find(
+      s => s.email?.toLowerCase() === user.email?.toLowerCase() || s.id === user.id
+    ) || (isUserAdmin ? staff.find(s => s.email === 'arman@ekmuthohashi.org') : null);
+  }, [user, staff, isUserAdmin]);
+
+  const permissions = useMemo(() => {
+    const isPublic = effectiveViewMode === 'public';
+    const isStaff = effectiveViewMode === 'staff';
+    const isAdmin = effectiveViewMode === 'admin';
+    const role = (currentStaffProfile?.role || '').toLowerCase();
+
+    return {
+      isPublic,
+      isStaff,
+      isAdmin,
+      // Database connection: strictly visible in Admin view
+      canManageSupabase: isAdmin,
+      // Organization branding & settings: strictly visible in Admin view
+      canManageOrg: isAdmin,
+      // Staff management & approvals: strictly visible in Admin view
+      canManageStaff: isAdmin,
+      // Fund collection (Add Fund)
+      canAddFund: isAdmin || (isStaff && (role.includes('accountant') || role.includes('treasurer') || role.includes('coordinator') || role.includes('admin') || role.includes('procurement'))),
+      // Expenses logging (Add Expense)
+      canAddExpense: isAdmin || (isStaff && (role.includes('accountant') || role.includes('treasurer') || role.includes('procurement') || role.includes('logistics') || role.includes('coordinator') || role.includes('admin'))),
+      // Aid distribution
+      canDistributeAid: isAdmin || (isStaff && (role.includes('distribution') || role.includes('volunteer') || role.includes('coordinator') || role.includes('lead') || role.includes('survey'))),
+      // Needy family / Beneficiary registration
+      canAddBeneficiary: isAdmin || (isStaff && (role.includes('survey') || role.includes('verification') || role.includes('distribution') || role.includes('volunteer') || role.includes('coordinator'))),
+      // Manage campaigns
+      canManageCampaigns: isAdmin || (isStaff && role.includes('coordinator')),
+      // Manage Inventory
+      canManageInventory: isAdmin || (isStaff && (role.includes('logistics') || role.includes('procurement') || role.includes('coordinator'))),
+      // Profile editing
+      canEditProfile: Boolean(user) && !isPublic
+    };
+  }, [effectiveViewMode, currentStaffProfile, user]);
 
   // Filtered lists
   const filteredDonors = useMemo(() => {
@@ -1155,7 +1510,26 @@ export const CharityProvider = ({ children }) => {
     pullFromSupabase,
     signUpVolunteer,
     signInVolunteer,
-    signOutVolunteer
+    signOutVolunteer,
+    // Staff & Permission Controls
+    staff,
+    updateStaffProfile,
+    approveStaffMember,
+    rejectStaffMember,
+    removeStaffMember,
+    updateStaffRole,
+    addStaffMemberDirectly,
+    // Organization Profile & Branding
+    orgSettings,
+    updateOrgSettings,
+    resetOrgSettings,
+    // 3 Dashboard Views & Permissions
+    viewMode: effectiveViewMode,
+    setViewMode,
+    adminPreviewMode,
+    permissions,
+    currentStaffProfile,
+    isUserAdmin
   };
 
   return (
