@@ -12,9 +12,12 @@ import {
   CheckCircle2,
   Save,
   RotateCcw,
-  CreditCard
+  CreditCard,
+  Sliders,
+  Crop
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
+import { ImageAdjusterModal } from '../common/ImageAdjusterModal';
 import { useCharity } from '../../context/CharityContext';
 
 export const OrgSettingsModal = ({ isOpen, onClose }) => {
@@ -40,6 +43,10 @@ export const OrgSettingsModal = ({ isOpen, onClose }) => {
   const [logoPreview, setLogoPreview] = useState('/logo.png');
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Image Adjuster state
+  const [adjusterImage, setAdjusterImage] = useState(null);
+  const [isAdjusterOpen, setIsAdjusterOpen] = useState(false);
 
   useEffect(() => {
     if (orgSettings) {
@@ -74,8 +81,8 @@ export const OrgSettingsModal = ({ isOpen, onClose }) => {
       return;
     }
 
-    if (file.size > 4 * 1024 * 1024) {
-      setErrorMsg('Image size exceeds 4MB. Please select a smaller image.');
+    if (file.size > 8 * 1024 * 1024) {
+      setErrorMsg('Image size exceeds 8MB. Please select a smaller image.');
       return;
     }
 
@@ -83,12 +90,26 @@ export const OrgSettingsModal = ({ isOpen, onClose }) => {
     reader.onload = (event) => {
       const base64 = event.target?.result;
       if (base64) {
-        setLogoPreview(base64);
-        setFormData(prev => ({ ...prev, logoUrl: base64 }));
+        setAdjusterImage(base64);
+        setIsAdjusterOpen(true);
         setErrorMsg('');
       }
     };
     reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleAdjustCurrentLogo = () => {
+    if (logoPreview) {
+      setAdjusterImage(logoPreview);
+      setIsAdjusterOpen(true);
+    }
+  };
+
+  const handleSaveAdjustedLogo = (croppedDataUrl) => {
+    setLogoPreview(croppedDataUrl);
+    setFormData(prev => ({ ...prev, logoUrl: croppedDataUrl }));
+    setSuccessMsg('Logo adjusted! Click "Save Changes" below to apply across dashboard.');
   };
 
   const handleRestoreDefaultLogo = () => {
@@ -203,6 +224,18 @@ export const OrgSettingsModal = ({ isOpen, onClose }) => {
                     className="hidden"
                   />
                 </label>
+
+                {logoPreview && (
+                  <button
+                    type="button"
+                    onClick={handleAdjustCurrentLogo}
+                    className="px-3 py-1.5 text-xs font-bold text-teal-700 bg-teal-50 border border-teal-200 hover:bg-teal-100 rounded-xl transition flex items-center gap-1.5 cursor-pointer"
+                    title="Crop, zoom, rotate or reposition the logo image"
+                  >
+                    <Sliders className="w-3.5 h-3.5 text-teal-600" />
+                    <span>Adjust Logo</span>
+                  </button>
+                )}
 
                 <button
                   type="button"
@@ -405,6 +438,16 @@ export const OrgSettingsModal = ({ isOpen, onClose }) => {
           </button>
         </div>
       </form>
+
+      {/* Interactive Image Adjuster / Crop Modal */}
+      <ImageAdjusterModal
+        isOpen={isAdjusterOpen}
+        onClose={() => setIsAdjusterOpen(false)}
+        imageSrc={adjusterImage}
+        onSave={handleSaveAdjustedLogo}
+        aspectType="square"
+        title="Adjust & Crop Organization Logo"
+      />
     </Modal>
   );
 };

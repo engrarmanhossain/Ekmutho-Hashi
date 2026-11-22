@@ -15,9 +15,12 @@ import {
   Camera,
   Upload,
   Trash2,
+  Sliders,
+  Crop,
   Image as ImageIcon
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
+import { ImageAdjusterModal } from '../common/ImageAdjusterModal';
 import { useCharity } from '../../context/CharityContext';
 
 export const ProfileSettingsModal = ({
@@ -57,6 +60,10 @@ export const ProfileSettingsModal = ({
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
+  // Image Adjuster state
+  const [adjusterImage, setAdjusterImage] = useState(null);
+  const [isAdjusterOpen, setIsAdjusterOpen] = useState(false);
+
   // Synchronize form when selectedStaffId or isOpen changes
   useEffect(() => {
     if (targetStaffMember) {
@@ -92,8 +99,8 @@ export const ProfileSettingsModal = ({
       return;
     }
 
-    if (file.size > 3 * 1024 * 1024) {
-      setErrorMsg('Photo size exceeds 3MB. Please select a smaller photo.');
+    if (file.size > 8 * 1024 * 1024) {
+      setErrorMsg('Photo size exceeds 8MB. Please select a smaller photo.');
       return;
     }
 
@@ -101,11 +108,25 @@ export const ProfileSettingsModal = ({
     reader.onload = (event) => {
       const base64 = event.target?.result;
       if (base64) {
-        setAvatarUrl(base64);
+        setAdjusterImage(base64);
+        setIsAdjusterOpen(true);
         setErrorMsg('');
       }
     };
     reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleAdjustCurrentAvatar = () => {
+    if (avatarUrl) {
+      setAdjusterImage(avatarUrl);
+      setIsAdjusterOpen(true);
+    }
+  };
+
+  const handleSaveAdjustedAvatar = (croppedDataUrl) => {
+    setAvatarUrl(croppedDataUrl);
+    setSuccessMsg('Profile picture adjusted! Click "Save Changes" below to apply.');
   };
 
   const handleRemoveAvatar = () => {
@@ -274,7 +295,7 @@ export const ProfileSettingsModal = ({
               </div>
 
               {/* Picture Action Buttons */}
-              <div className="flex items-center justify-center sm:justify-start gap-2 mt-2.5">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-2.5">
                 <label className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg cursor-pointer shadow-2xs transition">
                   <Upload className="w-3 h-3 text-teal-600" />
                   <span>{avatarUrl ? 'Change Photo' : 'Upload Photo'}</span>
@@ -289,8 +310,20 @@ export const ProfileSettingsModal = ({
                 {avatarUrl && (
                   <button
                     type="button"
+                    onClick={handleAdjustCurrentAvatar}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-lg transition cursor-pointer"
+                    title="Crop, zoom, rotate or reposition this picture"
+                  >
+                    <Sliders className="w-3 h-3 text-teal-600" />
+                    <span>Adjust Photo</span>
+                  </button>
+                )}
+
+                {avatarUrl && (
+                  <button
+                    type="button"
                     onClick={handleRemoveAvatar}
-                    className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                    className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
                     title="Remove Profile Picture"
                   >
                     <Trash2 className="w-3 h-3" />
@@ -502,6 +535,16 @@ export const ProfileSettingsModal = ({
           </button>
         </div>
       </form>
+
+      {/* Interactive Image Adjuster / Crop Modal */}
+      <ImageAdjusterModal
+        isOpen={isAdjusterOpen}
+        onClose={() => setIsAdjusterOpen(false)}
+        imageSrc={adjusterImage}
+        onSave={handleSaveAdjustedAvatar}
+        aspectType="circle"
+        title={`Adjust Profile Picture • ${fullName}`}
+      />
     </Modal>
   );
 };
