@@ -8,8 +8,6 @@ import {
   Lock,
   Save,
   CheckCircle2,
-  Crown,
-  Sparkles,
   Users,
   ChevronDown,
   ShieldAlert,
@@ -193,9 +191,8 @@ export const ProfileSettingsModal = ({
               <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />
             </div>
 
-            <p className="text-[10px] text-amber-900/80 flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-amber-600 shrink-0" />
-              <span>You have administrative authority to modify profile photo, roles, contact details, operational area, and status for this staff member.</span>
+            <p className="text-[10px] text-amber-900/80">
+              You have administrative authority to modify profile photo, roles, contact details, operational area, and status for this staff member.
             </p>
           </div>
         )}
@@ -224,7 +221,7 @@ export const ProfileSettingsModal = ({
                   />
                 ) : isChief ? (
                   <div className="w-full h-full bg-gradient-to-br from-amber-500 to-amber-600 text-white flex items-center justify-center">
-                    <Crown className="w-9 h-9" />
+                    <ShieldCheck className="w-9 h-9" />
                   </div>
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-teal-600 to-teal-700 text-white flex items-center justify-center">
@@ -252,7 +249,6 @@ export const ProfileSettingsModal = ({
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-center sm:justify-start gap-1.5 truncate">
                 <span className="font-extrabold text-slate-900 text-base truncate">{fullName}</span>
-                {isChief && <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />}
               </div>
               <p className="text-xs text-slate-500 font-mono truncate">{currentStaff?.email}</p>
 

@@ -9,9 +9,7 @@ import {
   LogIn,
   UserPlus,
   Cloud,
-  RefreshCw,
-  Crown,
-  Sparkles
+  RefreshCw
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { useCharity } from '../../context/CharityContext';
@@ -125,7 +123,7 @@ export const AuthModal = ({ isOpen, onClose, onOpenConnectModal }) => {
                     : 'bg-teal-600 text-white'
                 }`}
               >
-                {isAdmin ? <Crown className="w-7 h-7" /> : (user.user_metadata?.full_name || user.email || 'V')[0].toUpperCase()}
+                {isAdmin ? <ShieldCheck className="w-7 h-7 text-white" /> : (user.user_metadata?.full_name || user.email || 'V')[0].toUpperCase()}
               </div>
 
               <div className="min-w-0">
@@ -133,7 +131,6 @@ export const AuthModal = ({ isOpen, onClose, onOpenConnectModal }) => {
                   <p className="font-extrabold text-slate-900 text-base truncate">
                     {user.user_metadata?.full_name || (isAdmin ? 'Engr. Arman Hossain' : 'Volunteer Member')}
                   </p>
-                  {isAdmin && <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />}
                 </div>
 
                 <p className="text-xs text-slate-600 font-mono truncate">{user.email}</p>
@@ -179,7 +176,7 @@ export const AuthModal = ({ isOpen, onClose, onOpenConnectModal }) => {
             <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/15 to-amber-500/10 border-2 border-amber-300/80 shadow-xs space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-xs font-black text-amber-900 uppercase tracking-wider">
-                  <Crown className="w-4 h-4 text-amber-600" />
+                  <ShieldCheck className="w-4 h-4 text-amber-700" />
                   <span>Admin & Leadership Access</span>
                 </div>
                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-200 text-amber-800">
@@ -196,7 +193,7 @@ export const AuthModal = ({ isOpen, onClose, onOpenConnectModal }) => {
                 disabled={loading}
                 className="w-full py-2 px-3 rounded-xl text-xs font-black text-white bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 shadow-sm transition flex items-center justify-center gap-1.5 active:scale-98"
               >
-                <Crown className="w-3.5 h-3.5 text-amber-200" />
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-200" />
                 <span>1-Click Login as Engr. Arman Hossain</span>
               </button>
             </div>

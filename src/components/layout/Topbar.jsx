@@ -11,11 +11,9 @@ import {
   CloudOff,
   User,
   RefreshCw,
-  Crown,
   Users,
   Settings,
   Building2,
-  Sparkles,
   Heart,
   Eye,
   LogOut,
@@ -48,7 +46,6 @@ export const Topbar = ({
     staff,
     orgSettings,
     viewMode,
-    setViewMode,
     permissions,
     currentStaffProfile,
     isUserAdmin,
@@ -58,7 +55,6 @@ export const Topbar = ({
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
-  const [showViewSwitcher, setShowViewSwitcher] = useState(false);
 
   const pendingStaffCount = staff ? staff.filter(s => s.status === 'pending').length : 0;
 
@@ -105,136 +101,9 @@ export const Topbar = ({
             </div>
           </div>
 
-          {/* Right Controls: View mode badge / switcher, Role actions, and menus */}
+          {/* Right Controls: Role actions, and menus */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* 1. THREE DASHBOARD VIEWS SWITCHER / INDICATOR */}
-            {isUserAdmin ? (
-              // Admin View Switcher Dropdown
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setShowViewSwitcher(!showViewSwitcher)}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:py-2 rounded-xl text-xs font-black border transition shadow-xs ${
-                    viewMode === 'admin'
-                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white border-amber-400 ring-2 ring-amber-400/30'
-                      : viewMode === 'staff'
-                      ? 'bg-teal-600 text-white border-teal-500'
-                      : 'bg-slate-800 text-white border-slate-700'
-                  }`}
-                  title="Switch between Admin, Staff, and Public views"
-                >
-                  {viewMode === 'admin' && <Crown className="w-3.5 h-3.5 text-amber-200" />}
-                  {viewMode === 'staff' && <User className="w-3.5 h-3.5" />}
-                  {viewMode === 'public' && <Eye className="w-3.5 h-3.5" />}
-
-                  <span className="truncate max-w-[110px] sm:max-w-none">
-                    {viewMode === 'admin' && 'Admin View'}
-                    {viewMode === 'staff' && 'Staff View'}
-                    {viewMode === 'public' && 'Public View'}
-                  </span>
-                  <ChevronDown className="w-3 h-3 opacity-80" />
-                </button>
-
-                {showViewSwitcher && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setShowViewSwitcher(false)}
-                    />
-                    <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white shadow-2xl border border-slate-200 py-2 z-50 text-xs">
-                      <div className="px-3.5 py-2 border-b border-slate-100">
-                        <p className="font-extrabold text-slate-900 flex items-center gap-1.5">
-                          <span>3 Dashboard View Modes</span>
-                          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                        </p>
-                        <p className="text-[11px] text-slate-500 mt-0.5">
-                          Engr. Arman Hossain (Admin) can switch and preview any dashboard mode instantly.
-                        </p>
-                      </div>
-
-                      <div className="p-1.5 space-y-1">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setViewMode('admin');
-                            setShowViewSwitcher(false);
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition ${
-                            viewMode === 'admin'
-                              ? 'bg-amber-50 text-amber-950 font-bold border border-amber-200'
-                              : 'hover:bg-slate-50 text-slate-700'
-                          }`}
-                        >
-                          <Crown className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-                          <div>
-                            <span className="block font-bold">1. Admin View (Full Access)</span>
-                            <span className="text-[10px] text-slate-500 leading-tight block">
-                              All permissions: Org branding, Logo, Staff controls, Supabase sync.
-                            </span>
-                          </div>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setViewMode('staff');
-                            setShowViewSwitcher(false);
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition ${
-                            viewMode === 'staff'
-                              ? 'bg-teal-50 text-teal-950 font-bold border border-teal-200'
-                              : 'hover:bg-slate-50 text-slate-700'
-                          }`}
-                        >
-                          <User className="w-4 h-4 text-teal-600 mt-0.5 shrink-0" />
-                          <div>
-                            <span className="block font-bold">2. Staff View (Role-based)</span>
-                            <span className="text-[10px] text-slate-500 leading-tight block">
-                              Editing permissions by role. Supabase connection & org settings hidden.
-                            </span>
-                          </div>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setViewMode('public');
-                            setShowViewSwitcher(false);
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition ${
-                            viewMode === 'public'
-                              ? 'bg-slate-100 text-slate-900 font-bold border border-slate-300'
-                              : 'hover:bg-slate-50 text-slate-700'
-                          }`}
-                        >
-                          <Eye className="w-4 h-4 text-slate-600 mt-0.5 shrink-0" />
-                          <div>
-                            <span className="block font-bold">3. Public View (Read-Only)</span>
-                            <span className="text-[10px] text-slate-500 leading-tight block">
-                              Clean transparency mode for visitors and donors. No editing permitted.
-                            </span>
-                          </div>
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            ) : viewMode === 'staff' ? (
-              // Staff View Indicator Badge
-              <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-teal-50 text-teal-900 border border-teal-200">
-                <span className="w-2 h-2 rounded-full bg-teal-500"></span>
-                <span>Staff View: {currentStaffProfile?.role || 'Field Volunteer'}</span>
-              </div>
-            ) : (
-              // Public View Indicator Badge
-              <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Public Transparency Mode</span>
-              </div>
-            )}
-
-            {/* 2. ADMIN-ONLY: SUPABASE CLOUD SYNC BUTTON (Strictly visible ONLY in Admin View) */}
+            {/* 1. ADMIN-ONLY: SUPABASE CLOUD SYNC BUTTON (Strictly visible ONLY in Admin View) */}
             {permissions.canManageSupabase && (
               <button
                 type="button"
@@ -308,8 +177,8 @@ export const Topbar = ({
                 type="button"
                 onClick={onOpenProfileSettings}
                 className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs font-bold border transition ${
-                  isUserAdmin && viewMode === 'admin'
-                    ? 'bg-amber-100 text-amber-950 border-amber-300 hover:bg-amber-200 ring-2 ring-amber-400/30'
+                  isUserAdmin
+                    ? 'bg-amber-100 text-amber-950 border-amber-300 hover:bg-amber-200'
                     : 'bg-teal-50 text-teal-800 border-teal-300 hover:bg-teal-100'
                 }`}
                 title="Staff Profile & Account Settings"
@@ -320,13 +189,13 @@ export const Topbar = ({
                     alt={user.user_metadata?.full_name || 'Staff'}
                     className="w-4 h-4 rounded-full object-cover border border-amber-500/50"
                   />
-                ) : isUserAdmin && viewMode === 'admin' ? (
-                  <Crown className="w-3.5 h-3.5 text-amber-700" />
+                ) : isUserAdmin ? (
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-700" />
                 ) : (
-                  <User className="w-3.5 h-3.5" />
+                  <User className="w-3.5 h-3.5 text-teal-700" />
                 )}
                 <span className="hidden sm:inline truncate max-w-[120px]">
-                  {isUserAdmin && viewMode === 'admin'
+                  {isUserAdmin
                     ? 'Engr. Arman'
                     : user.user_metadata?.full_name?.split(' ')[0] || 'My Profile'}
                 </span>

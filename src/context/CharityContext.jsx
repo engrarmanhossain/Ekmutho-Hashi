@@ -893,13 +893,9 @@ export const CharityProvider = ({ children }) => {
 
   const effectiveViewMode = useMemo(() => {
     if (!user) return 'public';
-    if (isUserAdmin) {
-      if (adminPreviewMode === 'staff') return 'staff';
-      if (adminPreviewMode === 'public') return 'public';
-      return 'admin';
-    }
+    if (isUserAdmin) return 'admin';
     return 'staff';
-  }, [user, isUserAdmin, adminPreviewMode]);
+  }, [user, isUserAdmin]);
 
   const setViewMode = (mode) => {
     if (!['admin', 'staff', 'public'].includes(mode)) return;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { HeartHandshake, Sparkles } from 'lucide-react';
+import { HeartHandshake } from 'lucide-react';
 import { useCharity } from '../../context/CharityContext';
 import { Modal } from '../common/Modal';
 

@@ -8,7 +8,6 @@ import {
   Edit2,
   Trash2,
   Layers,
-  Sparkles,
   ShoppingBag
 } from 'lucide-react';
 import { useCharity } from '../../context/CharityContext';

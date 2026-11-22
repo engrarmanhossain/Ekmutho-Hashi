@@ -8,9 +8,7 @@ import {
   Receipt,
   FileSpreadsheet,
   X,
-  Sparkles,
   ShieldCheck,
-  Crown,
   Building2,
   LogIn,
   Eye,
@@ -168,7 +166,7 @@ export const Sidebar = ({
             }`}
           >
             <span className="flex items-center gap-1.5">
-              {viewMode === 'admin' && <Crown className="w-3.5 h-3.5 text-amber-400" />}
+              {viewMode === 'admin' && <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />}
               {viewMode === 'staff' && <UserCheck className="w-3.5 h-3.5 text-teal-400" />}
               {viewMode === 'public' && <Eye className="w-3.5 h-3.5 text-slate-400" />}
               <span className="capitalize">{viewMode} Mode</span>
@@ -270,7 +268,7 @@ export const Sidebar = ({
                       className="w-full h-full object-cover"
                     />
                   ) : isUserAdmin ? (
-                    <Crown className="w-4 h-4 text-amber-400" />
+                    <ShieldCheck className="w-4 h-4 text-amber-400" />
                   ) : (
                     <UserCheck className="w-4 h-4 text-teal-400" />
                   )}
@@ -321,8 +319,8 @@ export const Sidebar = ({
 
           <div className="flex items-center justify-between text-[9px] text-slate-400 px-1">
             <span>{orgSettings?.name || 'Ekmutho Hashi'}</span>
-            <span className="flex items-center gap-1 text-amber-400">
-              <Sparkles className="w-2.5 h-2.5" /> Ramadan 1447H
+            <span className="text-amber-400 font-semibold">
+              Ramadan 1447H
             </span>
           </div>
         </div>

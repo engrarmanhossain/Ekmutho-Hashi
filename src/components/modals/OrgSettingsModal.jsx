@@ -10,8 +10,6 @@ import {
   FileText,
   UserCheck,
   CheckCircle2,
-  Crown,
-  Sparkles,
   Save,
   RotateCcw,
   CreditCard
@@ -135,12 +133,12 @@ export const OrgSettingsModal = ({ isOpen, onClose }) => {
         {/* Admin Executive Header Notice */}
         <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-teal-500/10 border border-amber-300/60 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-xs">
-              <Crown className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center shadow-xs">
+              <Building2 className="w-5 h-5" />
             </div>
             <div>
               <span className="text-xs font-black text-amber-950 flex items-center gap-1">
-                Executive Admin Control Panel <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                Executive Admin Control Panel
               </span>
               <p className="text-[11px] text-amber-900/80">
                 Changes made here immediately update all navigation bars, public receipts, cards, and printed audit reports.

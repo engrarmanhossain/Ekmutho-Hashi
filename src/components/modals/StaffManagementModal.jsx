@@ -9,7 +9,6 @@ import {
   Trash2,
   CheckCircle2,
   AlertCircle,
-  Crown,
   MapPin,
   Phone,
   Mail,
@@ -280,7 +279,7 @@ export const StaffManagementModal = ({ isOpen, onClose, onEditStaffProfile }) =>
                                 <img src={member.avatarUrl} alt={member.fullName} className="w-full h-full object-cover" />
                               ) : isChief ? (
                                 <span className="w-full h-full bg-amber-500 text-white flex items-center justify-center">
-                                  <Crown className="w-4 h-4 text-white" />
+                                  <ShieldCheck className="w-4 h-4 text-white" />
                                 </span>
                               ) : (
                                 <span className="w-full h-full bg-teal-600 text-white flex items-center justify-center">
@@ -291,7 +290,7 @@ export const StaffManagementModal = ({ isOpen, onClose, onEditStaffProfile }) =>
                             <div>
                               <div className="flex items-center gap-1.5">
                                 <span className="font-bold text-slate-900">{member.fullName}</span>
-                                {isChief && <Crown className="w-3.5 h-3.5 text-amber-600 shrink-0" />}
+                                {isChief && <ShieldCheck className="w-3.5 h-3.5 text-amber-600 shrink-0" />}
                               </div>
                               <span className="text-[11px] text-slate-400 font-mono block">
                                 {member.email} {member.phone !== 'N/A' && `• ${member.phone}`}

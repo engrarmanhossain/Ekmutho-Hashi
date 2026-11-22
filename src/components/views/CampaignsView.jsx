@@ -8,8 +8,7 @@ import {
   CheckCircle2,
   Edit2,
   Trash2,
-  Filter,
-  Sparkles
+  Filter
 } from 'lucide-react';
 import { useCharity } from '../../context/CharityContext';
 import { formatCurrency, formatNumber, formatDate } from '../../utils/formatters';

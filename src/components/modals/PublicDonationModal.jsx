@@ -7,7 +7,6 @@ import {
   Building,
   Phone,
   Send,
-  Sparkles,
   ShieldCheck,
   HandHeart
 } from 'lucide-react';
@@ -62,7 +61,6 @@ export const PublicDonationModal = ({ isOpen, onClose }) => {
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/20 uppercase tracking-wider">
                 100% Transparent Relief
               </span>
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
             </div>
             <h3 className="text-base sm:text-lg font-black tracking-tight">
               আপনার একমুঠো দানে এক পরিবারের মুখে ফুটবে হাসি
