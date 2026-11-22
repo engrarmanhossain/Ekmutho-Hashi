@@ -311,6 +311,7 @@ export const CharityProvider = ({ children }) => {
     staffId: r.staff_id,
     fullName: r.full_name,
     email: r.email,
+    password: r.password || null,
     phone: r.phone,
     role: r.role,
     area: r.area,
@@ -327,6 +328,7 @@ export const CharityProvider = ({ children }) => {
     staff_id: s.staffId || null,
     full_name: s.fullName,
     email: s.email,
+    password: s.password || null,
     phone: s.phone || null,
     role: s.role || 'Field Volunteer',
     area: s.area || null,
@@ -577,6 +579,7 @@ export const CharityProvider = ({ children }) => {
       staffId: `EH-VOL-${String(staff.length + 1).padStart(3, '0')}`,
       fullName: fullName.trim(),
       email: trimmedEmail,
+      password: password || 'staff123456',
       phone: phone || 'N/A',
       role: isAdmin ? 'Admin, President & CEO' : 'Field Volunteer',
       area: area || 'General Field Team',
@@ -649,51 +652,98 @@ export const CharityProvider = ({ children }) => {
       return { user: adminUser };
     }
 
-    // 2. Check staff roster approval status
-    const staffRecord = staff.find(s => s.email.toLowerCase() === trimmedEmail);
-    if (staffRecord && staffRecord.status === 'pending') {
-      throw new Error('Your staff registration is pending approval by Engr. Arman Hossain (Admin, President & CEO). Please wait for approval.');
-    }
-    if (staffRecord && staffRecord.status === 'rejected') {
-      throw new Error('This account access has been revoked. Please contact the administrator.');
+    // 2. Check staff roster approval status and credentials
+    const staffRecord = staff.find(s => s.email?.trim().toLowerCase() === trimmedEmail);
+
+    if (staffRecord) {
+      if (staffRecord.status === 'pending') {
+        throw new Error('Your staff registration is pending approval by Engr. Arman Hossain (Admin, President & CEO). Please wait for approval.');
+      }
+      if (staffRecord.status === 'rejected') {
+        throw new Error('This account access has been revoked. Please contact the administrator.');
+      }
+
+      // Check password matching
+      const hasStoredPassword = Boolean(staffRecord.password);
+      const isPasswordValid = hasStoredPassword
+        ? staffRecord.password === password
+        : (password && (password === 'staff2026**' || password === 'staff123456' || password.length >= 6));
+
+      if (!isPasswordValid) {
+        throw new Error(`Incorrect password for ${staffRecord.fullName}. Please check the password given by Admin or contact Engr. Arman Hossain.`);
+      }
+
+      // If staff had no stored password, save the password entered
+      if (!hasStoredPassword && password) {
+        setStaff(prev => prev.map(s => s.id === staffRecord.id ? { ...s, password } : s));
+      }
+
+      const staffUser = {
+        id: staffRecord.id,
+        email: staffRecord.email,
+        user_metadata: {
+          full_name: staffRecord.fullName,
+          role: staffRecord.role,
+          phone: staffRecord.phone,
+          area: staffRecord.area,
+          avatar_url: staffRecord.avatarUrl
+        }
+      };
+
+      setUser(staffUser);
+      localStorage.setItem('ekmutho_active_user', JSON.stringify(staffUser));
+      addToast(`Welcome back, ${staffRecord.fullName} (${staffRecord.role})!`, 'success');
+
+      // Also sync session with Supabase in background if connected
+      const supabase = getSupabaseClient();
+      if (supabase) {
+        supabase.auth.signInWithPassword({ email, password }).catch(() => {
+          supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                full_name: staffRecord.fullName,
+                role: staffRecord.role
+              }
+            }
+          }).catch(() => {});
+        });
+      }
+
+      return { user: staffUser };
     }
 
-    // 3. Supabase or Local sign in
+    // 3. Fallback: Check Supabase Auth if user exists in cloud
     const supabase = getSupabaseClient();
     if (supabase) {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
 
-      if (error) throw error;
+        if (!error && data?.user) {
+          const userMeta = data.user.user_metadata || {};
+          const matchedRoster = staff.find(s => s.email?.toLowerCase() === trimmedEmail);
 
-      if (staffRecord && staffRecord.status !== 'approved' && !data.user.user_metadata?.is_admin) {
-        throw new Error('Your staff registration has not been approved by the Admin yet.');
-      }
-
-      setUser(data.user);
-      localStorage.setItem('ekmutho_active_user', JSON.stringify(data.user));
-      addToast(`Welcome back, ${data.user.user_metadata?.full_name || data.user.email}!`);
-      return data;
-    } else {
-      // Local mode sign in for pre-approved staff
-      if (staffRecord && staffRecord.status === 'approved') {
-        const localUser = {
-          id: staffRecord.id,
-          email: staffRecord.email,
-          user_metadata: {
-            full_name: staffRecord.fullName,
-            role: staffRecord.role
+          if (matchedRoster && matchedRoster.status !== 'approved' && !userMeta.is_admin) {
+            throw new Error('Your staff registration has not been approved by the Admin yet.');
           }
-        };
-        setUser(localUser);
-        localStorage.setItem('ekmutho_active_user', JSON.stringify(localUser));
-        addToast(`Welcome back, ${staffRecord.fullName}!`);
-        return { user: localUser };
+
+          setUser(data.user);
+          localStorage.setItem('ekmutho_active_user', JSON.stringify(data.user));
+          addToast(`Welcome back, ${userMeta.full_name || data.user.email}!`, 'success');
+          return data;
+        }
+      } catch (sbErr) {
+        if (sbErr.message && !sbErr.message.includes('Invalid login credentials')) {
+          throw sbErr;
+        }
       }
-      throw new Error('Invalid credentials or account not approved.');
     }
+
+    throw new Error('Account not found with this email or invalid password. Please ask Admin Engr. Arman Hossain to confirm your staff credentials.');
   };
 
   const signOutVolunteer = async () => {
@@ -756,6 +806,22 @@ export const CharityProvider = ({ children }) => {
         await supabase.from('staff_members').upsert(mapAppStaffToDb(targetUpdated));
       } catch (err) {
         console.error('Cloud staff profile update error:', err);
+      }
+      if (updatedData.password) {
+        try {
+          await supabase.auth.signUp({
+            email: targetUpdated.email,
+            password: updatedData.password,
+            options: {
+              data: {
+                full_name: targetUpdated.fullName,
+                role: targetUpdated.role
+              }
+            }
+          });
+        } catch (authErr) {
+          console.warn('Cloud auth password sync warning:', authErr);
+        }
       }
     }
 
@@ -824,8 +890,10 @@ export const CharityProvider = ({ children }) => {
 
   const addStaffMemberDirectly = async (staffData) => {
     const nextNum = String(staff.length + 1).padStart(3, '0');
+    const assignedPassword = staffData.password || 'staff123456';
     const newStaff = {
       ...staffData,
+      password: assignedPassword,
       id: `STAFF-${Date.now().toString().slice(-4)}`,
       staffId: `EH-STAFF-${nextNum}`,
       status: 'approved',
@@ -842,9 +910,23 @@ export const CharityProvider = ({ children }) => {
       } catch (err) {
         console.error('Cloud direct staff insert error:', err);
       }
+      try {
+        await supabase.auth.signUp({
+          email: newStaff.email,
+          password: assignedPassword,
+          options: {
+            data: {
+              full_name: newStaff.fullName,
+              role: newStaff.role
+            }
+          }
+        });
+      } catch (authErr) {
+        console.warn('Supabase staff signup error:', authErr);
+      }
     }
 
-    addToast(`Registered ${newStaff.fullName} as ${newStaff.role}!`, 'success');
+    addToast(`Registered ${newStaff.fullName} as ${newStaff.role} with login credentials!`, 'success');
     return newStaff;
   };
 

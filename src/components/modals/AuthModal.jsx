@@ -248,8 +248,8 @@ export const AuthModal = ({ isOpen, onClose, onOpenConnectModal }) => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="arman@ekmuthohashi.org"
-                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-teal-500"
+                  placeholder="staff@ekmuthohashi.org"
+                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-teal-500 font-mono"
                   required
                 />
               </div>
@@ -263,9 +263,9 @@ export const AuthModal = ({ isOpen, onClose, onOpenConnectModal }) => {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter password"
+                  placeholder="Enter login password"
                   minLength={6}
-                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-teal-500 font-mono"
                   required
                 />
               </div>
@@ -282,7 +282,7 @@ export const AuthModal = ({ isOpen, onClose, onOpenConnectModal }) => {
                 ) : (
                   <LogIn className="w-4 h-4" />
                 )}
-                <span>{isSignUp ? 'Create Volunteer Account' : 'Sign In as Volunteer'}</span>
+                <span>{isSignUp ? 'Submit Staff Registration' : 'Sign In to Dashboard'}</span>
               </button>
 
               <div className="text-center pt-2">

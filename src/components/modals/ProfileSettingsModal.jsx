@@ -144,6 +144,10 @@ export const ProfileSettingsModal = ({
       avatarUrl: avatarUrl || null
     };
 
+    if (password) {
+      updatedData.password = password;
+    }
+
     updateStaffProfile(updatedData, currentStaff.id);
     setSuccessMsg(`Profile settings for ${fullName} updated successfully!`);
     setTimeout(() => {

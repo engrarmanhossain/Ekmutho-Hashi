@@ -34,6 +34,7 @@ export const StaffManagementModal = ({ isOpen, onClose, onEditStaffProfile }) =>
   // Direct add form state
   const [newFullName, setNewFullName] = useState('');
   const [newEmail, setNewEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [newPhone, setNewPhone] = useState('');
   const [newRole, setNewRole] = useState('Field Volunteer');
   const [newArea, setNewArea] = useState('Central Hub');
@@ -51,6 +52,7 @@ export const StaffManagementModal = ({ isOpen, onClose, onEditStaffProfile }) =>
     addStaffMemberDirectly({
       fullName: newFullName.trim(),
       email: newEmail.trim().toLowerCase(),
+      password: newPassword.trim() || 'staff123456',
       phone: newPhone.trim() || 'N/A',
       role: newRole,
       area: newArea.trim() || 'General Field Team',
@@ -59,6 +61,7 @@ export const StaffManagementModal = ({ isOpen, onClose, onEditStaffProfile }) =>
 
     setNewFullName('');
     setNewEmail('');
+    setNewPassword('');
     setNewPhone('');
     setNewNotes('');
     setActiveTab('roster');
@@ -392,7 +395,7 @@ export const StaffManagementModal = ({ isOpen, onClose, onEditStaffProfile }) =>
               </div>
 
               <div>
-                <label className="block text-slate-600 font-bold mb-1">Email Address *</label>
+                <label className="block text-slate-600 font-bold mb-1">Email Address (Login ID) *</label>
                 <input
                   type="email"
                   value={newEmail}
@@ -400,6 +403,21 @@ export const StaffManagementModal = ({ isOpen, onClose, onEditStaffProfile }) =>
                   placeholder="asif@ekmuthohashi.org"
                   className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white"
                   required
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-600 font-bold mb-1">
+                  Login Password (লগইন পাসওয়ার্ড) *
+                </label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Set password (e.g. asif2026** - min 6 chars)"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-mono"
+                  required
+                  minLength={6}
                 />
               </div>
 
@@ -413,7 +431,9 @@ export const StaffManagementModal = ({ isOpen, onClose, onEditStaffProfile }) =>
                   className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white"
                 />
               </div>
+            </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
               <div>
                 <label className="block text-slate-600 font-bold mb-1">Assigned Role</label>
                 <select
@@ -428,9 +448,7 @@ export const StaffManagementModal = ({ isOpen, onClose, onEditStaffProfile }) =>
                   <option value="Accountant & Treasurer">Accountant & Treasurer</option>
                 </select>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
                 <label className="block text-slate-600 font-bold mb-1">Branch / Area</label>
                 <input
