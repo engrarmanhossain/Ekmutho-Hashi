@@ -1,10 +1,12 @@
-import React from 'react';
-import { Printer, Download, CheckCircle2, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { Printer, Download, RefreshCw, CheckCircle2, X } from 'lucide-react';
 import { formatCurrency, formatDate, numberToWordsBDT } from '../../utils/formatters';
 import { useCharity } from '../../context/CharityContext';
+import { downloadElementAsPDF } from '../../utils/pdfUtils';
 
 export const DonorReceiptModal = ({ isOpen, onClose, donor }) => {
-  const { campaigns, orgSettings } = useCharity();
+  const { campaigns, orgSettings, addToast } = useCharity();
+  const [isDownloading, setIsDownloading] = useState(false);
 
   if (!isOpen || !donor) return null;
 
@@ -12,6 +14,21 @@ export const DonorReceiptModal = ({ isOpen, onClose, donor }) => {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownloadPDF = async () => {
+    try {
+      setIsDownloading(true);
+      const safeDonor = (donor.name || 'Donor').replace(/[^a-zA-Z0-9_\u0980-\u09FF]/g, '_');
+      const filename = `${donor.receiptNo || 'Receipt'}_${safeDonor}.pdf`;
+      await downloadElementAsPDF('printable-receipt', filename);
+      if (addToast) addToast(`Money Receipt PDF downloaded: ${filename}`, 'success');
+    } catch (err) {
+      console.error('Receipt PDF export error:', err);
+      if (addToast) addToast('Could not generate PDF. Please use Print Receipt.', 'error');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (
@@ -35,11 +52,25 @@ export const DonorReceiptModal = ({ isOpen, onClose, donor }) => {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={handlePrint}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs transition"
+                onClick={handleDownloadPDF}
+                disabled={isDownloading}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 rounded-lg shadow-xs transition disabled:opacity-60 cursor-pointer"
+                title="Download money receipt as PDF"
               >
-                <Printer className="w-3.5 h-3.5" />
-                <span>Print Receipt</span>
+                {isDownloading ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Download className="w-3.5 h-3.5" />
+                )}
+                <span>{isDownloading ? 'Generating...' : 'Download PDF'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={handlePrint}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg shadow-xs transition cursor-pointer"
+              >
+                <Printer className="w-3.5 h-3.5 text-slate-500" />
+                <span className="hidden sm:inline">Print Receipt</span>
               </button>
               <button
                 type="button"
