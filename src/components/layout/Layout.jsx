@@ -32,7 +32,7 @@ export const Layout = ({
             <span>
               Admin Preview Active: Viewing as{' '}
               <span className="underline uppercase tracking-wider">
-                {viewMode === 'staff' ? '🤝 Staff View (Role-based)' : '🌐 Public View (Read-Only)'}
+                {viewMode === 'staff' ? 'Staff View (Role-based)' : 'Public View (Read-Only)'}
               </span>
             </span>
           </div>

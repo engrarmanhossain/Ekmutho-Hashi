@@ -138,7 +138,7 @@ export const AddFundModal = ({ isOpen, onClose, onReceiptCreated }) => {
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            💰 Cash / Money (টাকা)
+            Cash / Money (টাকা)
           </button>
           <button
             type="button"
@@ -149,7 +149,7 @@ export const AddFundModal = ({ isOpen, onClose, onReceiptCreated }) => {
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            📦 Direct Product Donation (পণ্য)
+            Direct Product Donation (পণ্য)
           </button>
         </div>
 

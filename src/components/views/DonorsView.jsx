@@ -205,8 +205,8 @@ export const DonorsView = ({ onOpenAddFund, onOpenReceipt }) => {
             className="px-3 py-2 text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50 text-slate-700 focus:bg-white"
           >
             <option value="all">All Contributions (Cash & In-Kind)</option>
-            <option value="cash">💰 Cash Only</option>
-            <option value="product">📦 In-Kind Products Only</option>
+            <option value="cash">Cash Only</option>
+            <option value="product">In-Kind Products Only</option>
           </select>
 
           {/* Payment Method filter */}

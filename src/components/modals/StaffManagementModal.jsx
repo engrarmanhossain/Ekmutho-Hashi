@@ -279,7 +279,9 @@ export const StaffManagementModal = ({ isOpen, onClose, onEditStaffProfile }) =>
                               {member.avatarUrl ? (
                                 <img src={member.avatarUrl} alt={member.fullName} className="w-full h-full object-cover" />
                               ) : isChief ? (
-                                <span className="w-full h-full bg-amber-500 text-white flex items-center justify-center">👑</span>
+                                <span className="w-full h-full bg-amber-500 text-white flex items-center justify-center">
+                                  <Crown className="w-4 h-4 text-white" />
+                                </span>
                               ) : (
                                 <span className="w-full h-full bg-teal-600 text-white flex items-center justify-center">
                                   {member.fullName[0]?.toUpperCase() || 'S'}

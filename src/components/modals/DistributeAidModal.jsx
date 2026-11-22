@@ -240,7 +240,7 @@ export const DistributeAidModal = ({
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              📦 Relief Package Box
+              Relief Package Box
             </button>
             <button
               type="button"
@@ -251,7 +251,7 @@ export const DistributeAidModal = ({
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              💵 Cash Aid (নগদ টাকা)
+              Cash Aid (নগদ টাকা)
             </button>
             <button
               type="button"
@@ -262,7 +262,7 @@ export const DistributeAidModal = ({
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              🛒 Custom Items
+              Custom Items
             </button>
           </div>
         </div>

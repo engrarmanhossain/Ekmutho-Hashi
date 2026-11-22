@@ -102,7 +102,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.campaigns, public.inventory
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-bold text-sm">
-                  {isCloudConnected ? '🟢 Supabase Cloud Active' : '🟡 Offline / LocalStorage Mode'}
+                  {isCloudConnected ? 'Supabase Cloud Active' : 'Offline / LocalStorage Mode'}
                 </span>
                 <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/80 border border-slate-200">
                   {isCloudConnected ? 'Live Realtime Sync' : 'Single Browser Only'}
@@ -188,7 +188,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.campaigns, public.inventory
               title="Copy SQL table creation script to paste in Supabase SQL editor"
             >
               <Copy className="w-3.5 h-3.5" />
-              <span>{copiedSql ? '✓ Copied SQL Schema!' : 'Copy SQL Table Schema'}</span>
+              <span>{copiedSql ? 'Copied SQL Schema!' : 'Copy SQL Table Schema'}</span>
             </button>
 
             <button

@@ -356,7 +356,7 @@ export const BeneficiariesView = ({
                       <StatusBadge status={b.status} />
                       {b.aidHistory && b.aidHistory.length > 0 && (
                         <span className="block text-[10px] text-emerald-700 font-semibold mt-0.5">
-                          ✓ {b.aidHistory.length} aid package received
+                          {b.aidHistory.length} aid package received
                         </span>
                       )}
                     </td>

@@ -185,8 +185,7 @@ export const ProfileSettingsModal = ({
                   const isArman = s.email === 'arman@ekmuthohashi.org' || s.role.includes('CEO');
                   return (
                     <option key={s.id} value={s.id}>
-                      {isArman ? '👑 ' : '👤 '}
-                      {s.fullName} ({s.role}) • {s.staffId || s.id} {s.status === 'pending' ? ' [PENDING]' : ''}
+                      {isArman ? '[CEO] ' : ''}{s.fullName} ({s.role}) • {s.staffId || s.id} {s.status === 'pending' ? ' [PENDING]' : ''}
                     </option>
                   );
                 })}
@@ -270,7 +269,7 @@ export const ProfileSettingsModal = ({
                       : 'bg-rose-100 text-rose-800'
                   }`}
                 >
-                  {isChief ? '👑 President & CEO' : status === 'approved' ? '✓ Verified Staff' : status === 'pending' ? 'Pending Approval' : 'Suspended'}
+                  {isChief ? 'President & CEO' : status === 'approved' ? 'Verified Staff' : status === 'pending' ? 'Pending Approval' : 'Suspended'}
                 </span>
               </div>
 

@@ -146,7 +146,7 @@ export const AuthModal = ({ isOpen, onClose, onOpenConnectModal }) => {
                         : 'bg-teal-200 text-teal-900'
                     }`}
                   >
-                    {isAdmin ? '👑 Admin, President & CEO' : 'Verified Field Volunteer'}
+                    {isAdmin ? 'Admin, President & CEO' : 'Verified Field Volunteer'}
                   </span>
                 </div>
               </div>
@@ -155,8 +155,8 @@ export const AuthModal = ({ isOpen, onClose, onOpenConnectModal }) => {
             <div className="text-xs text-slate-600 space-y-1.5 p-3 rounded-xl bg-slate-50 border border-slate-200">
               <p className="font-semibold text-slate-800">
                 {isAdmin
-                  ? '⭐ Organization Authority Active: All reports, receipts, and field dispatches carry your executive authorization.'
-                  : '✓ Verified volunteer access enabled for field relief distribution.'}
+                  ? 'Organization Authority Active: All reports, receipts, and field dispatches carry your executive authorization.'
+                  : 'Verified volunteer access enabled for field relief distribution.'}
               </p>
               <p className="text-[11px] text-slate-500">
                 Logged in device: Mobile / Web App • Database synchronization ready.

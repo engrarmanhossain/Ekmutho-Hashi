@@ -276,7 +276,7 @@ export const CampaignsView = () => {
                   }`}
                 >
                   <Filter className="w-3.5 h-3.5" />
-                  <span>{isSelected ? '✓ Filter Active on Dashboard' : 'Filter Dashboard to this Drive'}</span>
+                  <span>{isSelected ? 'Filter Active on Dashboard' : 'Filter Dashboard to this Drive'}</span>
                 </button>
               </div>
             </div>

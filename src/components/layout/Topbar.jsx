@@ -128,9 +128,9 @@ export const Topbar = ({
                   {viewMode === 'public' && <Eye className="w-3.5 h-3.5" />}
 
                   <span className="truncate max-w-[110px] sm:max-w-none">
-                    {viewMode === 'admin' && '👑 Admin View'}
-                    {viewMode === 'staff' && '🤝 Staff View'}
-                    {viewMode === 'public' && '🌐 Public View'}
+                    {viewMode === 'admin' && 'Admin View'}
+                    {viewMode === 'staff' && 'Staff View'}
+                    {viewMode === 'public' && 'Public View'}
                   </span>
                   <ChevronDown className="w-3 h-3 opacity-80" />
                 </button>
@@ -353,7 +353,7 @@ export const Topbar = ({
                 onChange={(e) => setSelectedCampaign(e.target.value)}
                 className="pl-7 pr-7 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-xl border border-slate-300 bg-slate-50/70 text-slate-800 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition cursor-pointer appearance-none max-w-[110px] sm:max-w-[170px] truncate"
               >
-                <option value="all">🌟 All Drives</option>
+                <option value="all">All Drives</option>
                 {campaigns.map((camp) => (
                   <option key={camp.id} value={camp.id}>
                     {camp.name}

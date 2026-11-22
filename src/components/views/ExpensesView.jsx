@@ -211,10 +211,10 @@ export const ExpensesView = ({ onOpenAddExpense, onOpenDistributeAid }) => {
           >
             <option value="all">All Entries (Expenses & Distributions)</option>
             <option value="expense">Cash Expenses Only</option>
-            <option value="market">🛒 Market Wholesale Purchases</option>
-            <option value="logistics">🚚 Transport & Packaging</option>
-            <option value="distribution">📦 Package Aid Distributions</option>
-            <option value="cashaid">💵 Direct Cash Aid Distributions</option>
+            <option value="market">Market Wholesale Purchases</option>
+            <option value="logistics">Transport & Packaging</option>
+            <option value="distribution">Package Aid Distributions</option>
+            <option value="cashaid">Direct Cash Aid Distributions</option>
           </select>
         </div>
       </div>
