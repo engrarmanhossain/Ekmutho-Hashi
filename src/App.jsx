@@ -24,6 +24,7 @@ import { ProfileSettingsModal } from './components/modals/ProfileSettingsModal';
 import { StaffManagementModal } from './components/modals/StaffManagementModal';
 import { OrgSettingsModal } from './components/modals/OrgSettingsModal';
 import { PublicDonationModal } from './components/modals/PublicDonationModal';
+import { PublicBeneficiaryApplyModal } from './components/modals/PublicBeneficiaryApplyModal';
 
 function AppContent() {
   const { viewMode, permissions } = useCharity();
@@ -51,6 +52,7 @@ function AppContent() {
   const [isStaffManagementOpen, setIsStaffManagementOpen] = useState(false);
   const [isOrgSettingsOpen, setIsOrgSettingsOpen] = useState(false);
   const [isPublicDonationOpen, setIsPublicDonationOpen] = useState(false);
+  const [isPublicApplyOpen, setIsPublicApplyOpen] = useState(false);
 
   // Document Viewers states
   const [receiptDonor, setReceiptDonor] = useState(null);
@@ -84,6 +86,7 @@ function AppContent() {
       onOpenStaffManagement={() => setIsStaffManagementOpen(true)}
       onOpenOrgSettings={() => setIsOrgSettingsOpen(true)}
       onOpenPublicDonation={() => setIsPublicDonationOpen(true)}
+      onOpenPublicApply={() => setIsPublicApplyOpen(true)}
     >
       {/* Dynamic View rendering */}
       {activeTab === 'dashboard' && (
@@ -92,6 +95,8 @@ function AppContent() {
           onOpenAddFund={() => setIsAddFundOpen(true)}
           onOpenAddExpense={() => setIsAddExpenseOpen(true)}
           onOpenDistributeAid={() => handleOpenDistributeAid(null)}
+          onOpenPublicDonation={() => setIsPublicDonationOpen(true)}
+          onOpenPublicApply={() => setIsPublicApplyOpen(true)}
           onOpenReceipt={(donor) => setReceiptDonor(donor)}
           onOpenToken={(beneficiary) => {
             if (!isPublicMode) setTokenBeneficiary(beneficiary);
@@ -212,6 +217,12 @@ function AppContent() {
       <PublicDonationModal
         isOpen={isPublicDonationOpen}
         onClose={() => setIsPublicDonationOpen(false)}
+      />
+
+      {/* Public Relief Aid & Beneficiary Application Modal */}
+      <PublicBeneficiaryApplyModal
+        isOpen={isPublicApplyOpen}
+        onClose={() => setIsPublicApplyOpen(false)}
       />
     </Layout>
   );

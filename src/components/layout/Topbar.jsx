@@ -15,6 +15,7 @@ import {
   Settings,
   Building2,
   Heart,
+  HeartHandshake,
   Eye,
   LogOut,
   ShieldCheck
@@ -32,7 +33,8 @@ export const Topbar = ({
   onOpenProfileSettings,
   onOpenStaffManagement,
   onOpenOrgSettings,
-  onOpenPublicDonation
+  onOpenPublicDonation,
+  onOpenPublicApply
 }) => {
   const {
     campaigns,
@@ -160,7 +162,20 @@ export const Topbar = ({
               </button>
             )}
 
-            {/* 5. PUBLIC VIEW: DONATE / SUPPORT BUTTON */}
+            {/* 5. PUBLIC VIEW: APPLY FOR RELIEF & DONATE BUTTONS */}
+            {permissions.isPublic && onOpenPublicApply && (
+              <button
+                type="button"
+                onClick={onOpenPublicApply}
+                className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs font-bold text-amber-950 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 active:scale-98 shadow-sm transition border border-amber-500/30"
+                title="Apply for Relief Aid / দুস্থ পরিবার আবেদন"
+              >
+                <HeartHandshake className="w-3.5 h-3.5 text-amber-900" />
+                <span className="hidden sm:inline">Apply for Relief</span>
+                <span className="sm:hidden">ত্রাণ আবেদন</span>
+              </button>
+            )}
+
             {permissions.isPublic && onOpenPublicDonation && (
               <button
                 type="button"

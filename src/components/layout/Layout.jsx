@@ -15,6 +15,7 @@ export const Layout = ({
   onOpenStaffManagement,
   onOpenOrgSettings,
   onOpenPublicDonation,
+  onOpenPublicApply,
   children
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -31,6 +32,8 @@ export const Layout = ({
         onOpenStaffManagement={onOpenStaffManagement}
         onOpenOrgSettings={onOpenOrgSettings}
         onOpenAuthModal={onOpenAuthModal}
+        onOpenPublicDonation={onOpenPublicDonation}
+        onOpenPublicApply={onOpenPublicApply}
       />
 
       {/* Main Content Area */}
@@ -47,6 +50,7 @@ export const Layout = ({
           onOpenStaffManagement={onOpenStaffManagement}
           onOpenOrgSettings={onOpenOrgSettings}
           onOpenPublicDonation={onOpenPublicDonation}
+          onOpenPublicApply={onOpenPublicApply}
         />
 
         {/* Page View Body */}

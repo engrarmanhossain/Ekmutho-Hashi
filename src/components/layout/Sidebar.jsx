@@ -12,7 +12,8 @@ import {
   Building2,
   LogIn,
   Eye,
-  UserCheck
+  UserCheck,
+  Heart
 } from 'lucide-react';
 import { useCharity } from '../../context/CharityContext';
 
@@ -24,7 +25,9 @@ export const Sidebar = ({
   onOpenProfileSettings,
   onOpenStaffManagement,
   onOpenOrgSettings,
-  onOpenAuthModal
+  onOpenAuthModal,
+  onOpenPublicDonation,
+  onOpenPublicApply
 }) => {
   const {
     campaigns,
@@ -249,6 +252,62 @@ export const Sidebar = ({
               </button>
             );
           })}
+
+          {isPublicMode && (
+            <div className="pt-3 pb-1 border-t border-slate-800/80 space-y-2">
+              <div className="px-3 text-[10px] font-bold tracking-wider uppercase text-amber-400/90">
+                Public Gateway / নাগরিক সেবা
+              </div>
+
+              {onOpenPublicApply && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    onOpenPublicApply();
+                  }}
+                  className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left font-semibold text-sm bg-gradient-to-r from-amber-500/20 to-amber-600/10 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition shadow-xs group"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <HeartHandshake className="w-4 h-4 text-amber-400 shrink-0 group-hover:scale-110 transition" />
+                    <div className="truncate">
+                      <span className="block leading-snug">Apply for Relief Aid</span>
+                      <span className="block text-[10px] text-amber-200/80 leading-tight">
+                        দুস্থ পরিবার সহায়তা আবেদন
+                      </span>
+                    </div>
+                  </div>
+                  <span className="shrink-0 px-2 py-0.5 text-[10px] font-black rounded-full bg-amber-400 text-slate-950 uppercase">
+                    Apply
+                  </span>
+                </button>
+              )}
+
+              {onOpenPublicDonation && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    onOpenPublicDonation();
+                  }}
+                  className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left font-semibold text-sm bg-gradient-to-r from-emerald-500/20 to-teal-500/10 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition shadow-xs group"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Heart className="w-4 h-4 text-emerald-400 shrink-0 group-hover:scale-110 transition" />
+                    <div className="truncate">
+                      <span className="block leading-snug">Donate to Relief Fund</span>
+                      <span className="block text-[10px] text-emerald-200/80 leading-tight">
+                        তহবিলে অনুদান প্রদান
+                      </span>
+                    </div>
+                  </div>
+                  <span className="shrink-0 px-2 py-0.5 text-[10px] font-black rounded-full bg-emerald-400 text-slate-950 uppercase">
+                    Donate
+                  </span>
+                </button>
+              )}
+            </div>
+          )}
         </nav>
 
         {/* Leadership & Verification Footer */}

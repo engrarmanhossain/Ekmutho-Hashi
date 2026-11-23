@@ -1222,8 +1222,8 @@ export const CharityProvider = ({ children }) => {
       approvalStatus: isApprovedByAdmin ? 'approved' : (data.approvalStatus || 'pending'),
       approvedBy: isApprovedByAdmin ? (orgSettings?.president ? `${orgSettings.president} (Admin, President & CEO)` : 'Engr. Arman Hossain (Admin, President & CEO)') : null,
       approvedAt: isApprovedByAdmin ? new Date().toISOString() : null,
-      submittedBy: user?.user_metadata?.full_name || user?.email || 'Field Surveyor',
-      submittedAt: new Date().toISOString(),
+      submittedBy: data.submittedBy || user?.user_metadata?.full_name || user?.email || 'Public Online Application',
+      submittedAt: data.submittedAt || new Date().toISOString(),
       aidHistory: []
     };
     setBeneficiaries(prev => [newBeneficiary, ...prev]);

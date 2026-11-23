@@ -7,6 +7,8 @@ import {
   PackageCheck,
   AlertTriangle,
   HeartHandshake,
+  Heart,
+  ShieldCheck,
   ArrowRight,
   Gift,
   PlusCircle,
@@ -34,6 +36,8 @@ export const DashboardView = ({
   onOpenAddFund,
   onOpenAddExpense,
   onOpenDistributeAid,
+  onOpenPublicDonation,
+  onOpenPublicApply,
   onOpenReceipt,
   onOpenToken
 }) => {
@@ -181,14 +185,75 @@ export const DashboardView = ({
             )}
 
             {permissions.isPublic && (
-              <div className="px-4 py-2.5 rounded-xl font-semibold text-xs bg-white/10 border border-white/20 text-slate-200 flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <span>100% Verified Public Relief Ledger</span>
-              </div>
+              <>
+                {onOpenPublicApply && (
+                  <button
+                    type="button"
+                    onClick={onOpenPublicApply}
+                    className="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-lg shadow-amber-950/40 transition flex items-center gap-2 active:scale-98"
+                  >
+                    <HeartHandshake className="w-4 h-4 text-amber-950" />
+                    <span>Apply for Relief (ত্রাণ আবেদন)</span>
+                  </button>
+                )}
+
+                {onOpenPublicDonation && (
+                  <button
+                    type="button"
+                    onClick={onOpenPublicDonation}
+                    className="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-950/40 transition flex items-center gap-2 active:scale-98"
+                  >
+                    <Heart className="w-4 h-4 text-rose-200 fill-rose-200" />
+                    <span>Donate / Support</span>
+                  </button>
+                )}
+
+                <div className="hidden lg:flex px-3.5 py-2.5 rounded-xl font-semibold text-xs bg-white/10 border border-white/20 text-slate-200 items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <span>Public Relief Ledger</span>
+                </div>
+              </>
             )}
           </div>
         </div>
       </div>
+
+      {/* Public View: Dedicated Relief Application Callout Banner */}
+      {permissions.isPublic && onOpenPublicApply && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-teal-500/10 to-emerald-500/15 border-2 border-amber-400/40 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+              <HeartHandshake className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-400/30 text-amber-900 border border-amber-400/50">
+                  Relief Aid Registration
+                </span>
+                <span className="text-xs font-bold text-teal-800">
+                  একমুঠো হাসি দুস্থ পরিবার সহায়তা
+                </span>
+              </div>
+              <h3 className="text-sm sm:text-base font-black text-slate-900">
+                অসহায় ও সুবিধাবঞ্চিত পরিবারের জন্য খাদ্য ও ত্রাণ সহায়তা আবেদন
+              </h3>
+              <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
+                আপনার পরিবার বা পরিচিত কোনো প্রতিবেশী যদি খাদ্য সংকটে থাকেন, তবে এখনই নাম নিবন্ধন করুন। নির্বাহী এডমিন <strong>Engr. Arman Hossain</strong>-এর যাচাইকরণ ও অনুমোদনের পর ত্রাণ কার্ড ও সামগ্রী প্রদান করা হবে।
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onOpenPublicApply}
+            className="w-full md:w-auto px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-slate-950 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 active:scale-98 shadow-md transition flex items-center justify-center gap-2 shrink-0 border border-amber-500/40"
+          >
+            <HeartHandshake className="w-4 h-4 text-slate-950" />
+            <span>Apply for Relief (আবেদন করুন)</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
