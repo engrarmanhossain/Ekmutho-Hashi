@@ -26,12 +26,26 @@ export const AuthModal = ({ isOpen, onClose, onOpenConnectModal }) => {
   } = useCharity();
 
   const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState('');
+  const [rememberMe, setRememberMe] = useState(() => {
+    return localStorage.getItem('ekmutho_remember_me') !== 'false';
+  });
+  const [email, setEmail] = useState(() => {
+    return localStorage.getItem('ekmutho_remembered_email') || '';
+  });
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
+  React.useEffect(() => {
+    if (isOpen && !isSignUp) {
+      const savedEmail = localStorage.getItem('ekmutho_remembered_email');
+      if (savedEmail && !email) {
+        setEmail(savedEmail);
+      }
+    }
+  }, [isOpen, isSignUp]);
 
   const trimmedEmail = email.trim().toLowerCase();
   const registeredUser = useMemo(() => {
@@ -88,9 +102,18 @@ export const AuthModal = ({ isOpen, onClose, onOpenConnectModal }) => {
         }
         setTimeout(() => onClose(), 2200);
       } else {
+        if (rememberMe) {
+          localStorage.setItem('ekmutho_remember_me', 'true');
+          localStorage.setItem('ekmutho_remembered_email', email.trim());
+        } else {
+          localStorage.setItem('ekmutho_remember_me', 'false');
+          localStorage.removeItem('ekmutho_remembered_email');
+        }
+
         await signInVolunteer({
           email: email.trim(),
-          password
+          password,
+          rememberMe
         });
         setSuccessMsg('Welcome back! You are now authenticated.');
         setTimeout(() => onClose(), 1500);
@@ -268,6 +291,29 @@ export const AuthModal = ({ isOpen, onClose, onOpenConnectModal }) => {
                   required
                 />
               </div>
+
+              {/* Remember Me Option */}
+              {!isSignUp && (
+                <div className="flex items-center justify-between pt-0.5">
+                  <label className="flex items-center gap-2 cursor-pointer select-none group">
+                    <input
+                      type="checkbox"
+                      id="remember-me"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="w-4 h-4 rounded text-teal-600 border-slate-300 focus:ring-teal-500 cursor-pointer accent-teal-600"
+                    />
+                    <span className="text-xs font-semibold text-slate-700 group-hover:text-slate-900 transition flex items-center gap-1.5">
+                      <span>Remember Me</span>
+                      <span className="text-[11px] text-slate-400 font-normal">(আমাকে মনে রাখুন)</span>
+                    </span>
+                  </label>
+
+                  <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
+                    Stay signed in
+                  </span>
+                </div>
+              )}
 
               <button
                 type="submit"

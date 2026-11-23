@@ -70,7 +70,7 @@ export const CharityProvider = ({ children }) => {
   const [isCloudConnected, setIsCloudConnected] = useState(isSupabaseConfigured);
   const [isCloudSyncing, setIsCloudSyncing] = useState(false);
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('ekmutho_active_user');
+    const saved = localStorage.getItem('ekmutho_active_user') || sessionStorage.getItem('ekmutho_active_user');
     return saved ? JSON.parse(saved) : null;
   });
   const [supabaseCreds, setSupabaseCreds] = useState(getSupabaseCredentials);
@@ -481,11 +481,20 @@ export const CharityProvider = ({ children }) => {
 
     // Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
+      if (session?.user) {
+        setUser(session.user);
+      }
+    }).catch(() => {});
 
-    const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+    const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+      } else if (event === 'SIGNED_OUT') {
+        const localUser = localStorage.getItem('ekmutho_active_user') || sessionStorage.getItem('ekmutho_active_user');
+        if (!localUser) {
+          setUser(null);
+        }
+      }
     });
 
     // Initial pull
@@ -636,14 +645,24 @@ export const CharityProvider = ({ children }) => {
     return newStaffApplicant;
   };
 
-  const signInVolunteer = async ({ email, password }) => {
+  const signInVolunteer = async ({ email, password, rememberMe = true }) => {
     const trimmedEmail = email.trim().toLowerCase();
+
+    const persistUserSession = (userData) => {
+      setUser(userData);
+      if (rememberMe) {
+        localStorage.setItem('ekmutho_active_user', JSON.stringify(userData));
+        sessionStorage.removeItem('ekmutho_active_user');
+      } else {
+        sessionStorage.setItem('ekmutho_active_user', JSON.stringify(userData));
+        localStorage.removeItem('ekmutho_active_user');
+      }
+    };
 
     // 1. Check Master Admin, President & CEO credentials
     if (trimmedEmail === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
       const adminUser = ADMIN_CREDENTIALS.user;
-      setUser(adminUser);
-      localStorage.setItem('ekmutho_active_user', JSON.stringify(adminUser));
+      persistUserSession(adminUser);
       addToast('Welcome Engr. Arman Hossain (Admin, President & CEO)!', 'success');
 
       // Also attempt Supabase sign-in/up in background if connected
@@ -704,8 +723,7 @@ export const CharityProvider = ({ children }) => {
         }
       };
 
-      setUser(staffUser);
-      localStorage.setItem('ekmutho_active_user', JSON.stringify(staffUser));
+      persistUserSession(staffUser);
       addToast(`Welcome back, ${staffRecord.fullName} (${staffRecord.role})!`, 'success');
 
       // Also sync session with Supabase in background if connected
@@ -745,8 +763,7 @@ export const CharityProvider = ({ children }) => {
             throw new Error('Your staff registration has not been approved by the Admin yet.');
           }
 
-          setUser(data.user);
-          localStorage.setItem('ekmutho_active_user', JSON.stringify(data.user));
+          persistUserSession(data.user);
           addToast(`Welcome back, ${userMeta.full_name || data.user.email}!`, 'success');
           return data;
         }
@@ -769,6 +786,7 @@ export const CharityProvider = ({ children }) => {
     }
     setUser(null);
     localStorage.removeItem('ekmutho_active_user');
+    sessionStorage.removeItem('ekmutho_active_user');
     addToast('Signed out successfully.', 'info');
   };
 
@@ -811,7 +829,11 @@ export const CharityProvider = ({ children }) => {
         }
       };
       setUser(updatedUser);
-      localStorage.setItem('ekmutho_active_user', JSON.stringify(updatedUser));
+      if (sessionStorage.getItem('ekmutho_active_user')) {
+        sessionStorage.setItem('ekmutho_active_user', JSON.stringify(updatedUser));
+      } else {
+        localStorage.setItem('ekmutho_active_user', JSON.stringify(updatedUser));
+      }
     }
 
     const supabase = getSupabaseClient();
@@ -1640,10 +1662,14 @@ export const CharityProvider = ({ children }) => {
     const activeUser = localStorage.getItem('ekmutho_active_user');
     const savedStaff = localStorage.getItem('ekmutho_staff');
     const savedOrg = localStorage.getItem('ekmutho_org_settings');
+    const remEmail = localStorage.getItem('ekmutho_remembered_email');
+    const remPref = localStorage.getItem('ekmutho_remember_me');
     localStorage.clear();
     if (activeUser) localStorage.setItem('ekmutho_active_user', activeUser);
     if (savedStaff) localStorage.setItem('ekmutho_staff', savedStaff);
     if (savedOrg) localStorage.setItem('ekmutho_org_settings', savedOrg);
+    if (remEmail) localStorage.setItem('ekmutho_remembered_email', remEmail);
+    if (remPref) localStorage.setItem('ekmutho_remember_me', remPref);
 
     addToast('Sample Ramadan Iftar data has been reloaded!', 'success');
   };
@@ -1661,10 +1687,14 @@ export const CharityProvider = ({ children }) => {
     const activeUser = localStorage.getItem('ekmutho_active_user');
     const savedStaff = localStorage.getItem('ekmutho_staff');
     const savedOrg = localStorage.getItem('ekmutho_org_settings');
+    const remEmail = localStorage.getItem('ekmutho_remembered_email');
+    const remPref = localStorage.getItem('ekmutho_remember_me');
     localStorage.clear();
     if (activeUser) localStorage.setItem('ekmutho_active_user', activeUser);
     if (savedStaff) localStorage.setItem('ekmutho_staff', savedStaff);
     if (savedOrg) localStorage.setItem('ekmutho_org_settings', savedOrg);
+    if (remEmail) localStorage.setItem('ekmutho_remembered_email', remEmail);
+    if (remPref) localStorage.setItem('ekmutho_remember_me', remPref);
 
     addToast('All relief and distribution records cleared.', 'info');
   };
