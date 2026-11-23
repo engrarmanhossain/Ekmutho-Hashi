@@ -17,6 +17,8 @@ export const DistributeAidModal = ({
     inventory,
     getProductStock,
     distributeAid,
+    approveBeneficiary,
+    isUserAdmin,
     selectedCampaign
   } = useCharity();
 
@@ -94,6 +96,11 @@ export const DistributeAidModal = ({
 
     if (!beneficiaryId) {
       setErrorMsg('Please select a recipient family.');
+      return;
+    }
+
+    if (selectedBeneficiaryObj && (selectedBeneficiaryObj.approvalStatus === 'pending' || selectedBeneficiaryObj.status === 'Pending Approval')) {
+      setErrorMsg('Cannot distribute aid: this needy family is pending Executive Admin approval.');
       return;
     }
 
@@ -187,33 +194,59 @@ export const DistributeAidModal = ({
           <select
             value={beneficiaryId}
             onChange={(e) => setBeneficiaryId(e.target.value)}
-            className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-teal-500"
+            className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-teal-500 cursor-pointer"
             required
           >
             <option value="">-- Choose Family --</option>
-            {beneficiaries.map((b) => (
-              <option key={b.id} value={b.id}>
-                [{b.tokenNumber}] {b.headName} • {b.area} ({b.priorityCategory}) - Status: {b.status}
-              </option>
-            ))}
+            {beneficiaries.map((b) => {
+              const isPending = b.approvalStatus === 'pending' || b.status === 'Pending Approval';
+              return (
+                <option key={b.id} value={b.id}>
+                  [{b.tokenNumber}] {b.headName} • {b.area} ({b.priorityCategory}){isPending ? ' ⚠️ [AWAITING ADMIN APPROVAL]' : ` - Status: ${b.status}`}
+                </option>
+              );
+            })}
           </select>
 
           {selectedBeneficiaryObj && (
-            <div className="mt-2 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 flex flex-wrap items-center justify-between gap-2">
+            <div className={`mt-2 p-3 rounded-xl border text-xs ${
+              selectedBeneficiaryObj.approvalStatus === 'pending' || selectedBeneficiaryObj.status === 'Pending Approval'
+                ? 'bg-amber-50/80 border-amber-300 text-amber-950'
+                : 'bg-slate-50 border-slate-200 text-slate-700'
+            } flex flex-wrap items-center justify-between gap-2`}>
               <div>
                 <span className="font-bold text-slate-900">{selectedBeneficiaryObj.headName}</span>
                 <span className="text-slate-500 ml-2 font-mono">Token: {selectedBeneficiaryObj.tokenNumber}</span>
                 <p className="text-[11px] text-slate-500 mt-0.5">Area: {selectedBeneficiaryObj.area} | Members: {selectedBeneficiaryObj.familyMembers}</p>
+                {(selectedBeneficiaryObj.approvalStatus === 'pending' || selectedBeneficiaryObj.status === 'Pending Approval') && (
+                  <p className="text-[11px] text-amber-800 font-bold mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    <span>Awaiting Admin Approval by Engr. Arman Hossain before relief can be disbursed.</span>
+                  </p>
+                )}
               </div>
-              <div className="text-right">
+              <div className="text-right flex items-center gap-2">
+                {isUserAdmin && (selectedBeneficiaryObj.approvalStatus === 'pending' || selectedBeneficiaryObj.status === 'Pending Approval') && (
+                  <button
+                    type="button"
+                    onClick={() => approveBeneficiary(selectedBeneficiaryObj.id)}
+                    className="px-2.5 py-1 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs transition active:scale-95 cursor-pointer"
+                  >
+                    Approve Family Now
+                  </button>
+                )}
                 <span className={`inline-block px-2.5 py-1 rounded-full text-[11px] font-bold ${
-                  selectedBeneficiaryObj.status === 'Delivered'
+                  selectedBeneficiaryObj.approvalStatus === 'pending' || selectedBeneficiaryObj.status === 'Pending Approval'
+                    ? 'bg-amber-200 text-amber-900 border border-amber-300'
+                    : selectedBeneficiaryObj.status === 'Delivered'
                     ? 'bg-emerald-100 text-emerald-800'
                     : selectedBeneficiaryObj.status === 'Token Given'
-                    ? 'bg-amber-100 text-amber-800'
+                    ? 'bg-teal-100 text-teal-800'
                     : 'bg-slate-200 text-slate-700'
                 }`}>
-                  Current: {selectedBeneficiaryObj.status}
+                  {selectedBeneficiaryObj.approvalStatus === 'pending' || selectedBeneficiaryObj.status === 'Pending Approval'
+                    ? 'Pending Approval'
+                    : selectedBeneficiaryObj.status}
                 </span>
                 {selectedBeneficiaryObj.status === 'Delivered' && (
                   <p className="text-[10px] text-amber-700 font-semibold mt-0.5">

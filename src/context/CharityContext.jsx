@@ -210,6 +210,13 @@ export const CharityProvider = ({ children }) => {
     familyMembers: Number(r.family_members) || 1,
     priorityCategory: r.priority_category,
     status: r.status,
+    approvalStatus: r.approval_status || (r.status === 'Pending Approval' ? 'pending' : 'approved'),
+    approvedBy: r.approved_by || (r.status !== 'Pending Approval' ? 'Engr. Arman Hossain (Admin)' : null),
+    approvedAt: r.approved_at || null,
+    submittedBy: r.submitted_by || 'Volunteer Field Survey',
+    submittedAt: r.submitted_at || null,
+    distributionSlot: r.distribution_slot || '',
+    tokenNotes: r.token_notes || '',
     notes: r.notes,
     aidHistory: r.aid_history || []
   });
@@ -226,6 +233,13 @@ export const CharityProvider = ({ children }) => {
     family_members: b.familyMembers || 1,
     priority_category: b.priorityCategory,
     status: b.status || 'Pending',
+    approval_status: b.approvalStatus || 'approved',
+    approved_by: b.approvedBy || null,
+    approved_at: b.approvedAt || null,
+    submitted_by: b.submittedBy || null,
+    submitted_at: b.submittedAt || null,
+    distribution_slot: b.distributionSlot || null,
+    token_notes: b.tokenNotes || null,
     notes: b.notes || null,
     aid_history: b.aidHistory || []
   });
@@ -1197,12 +1211,19 @@ export const CharityProvider = ({ children }) => {
   // Action: Add Beneficiary
   const addBeneficiary = async (data) => {
     const nextFamNum = String(beneficiaries.length + 1).padStart(3, '0');
+    const isApprovedByAdmin = isUserAdmin && data.approvalStatus !== 'pending';
+
     const newBeneficiary = {
       ...data,
       id: `BEN-${Date.now().toString().slice(-4)}`,
       familyId: `EH-FAM-${nextFamNum}`,
       tokenNumber: `TKN-${nextFamNum}`,
-      status: data.status || 'Pending',
+      status: data.status || (isApprovedByAdmin ? 'Token Given' : 'Pending Approval'),
+      approvalStatus: isApprovedByAdmin ? 'approved' : (data.approvalStatus || 'pending'),
+      approvedBy: isApprovedByAdmin ? (orgSettings?.president ? `${orgSettings.president} (Admin, President & CEO)` : 'Engr. Arman Hossain (Admin, President & CEO)') : null,
+      approvedAt: isApprovedByAdmin ? new Date().toISOString() : null,
+      submittedBy: user?.user_metadata?.full_name || user?.email || 'Field Surveyor',
+      submittedAt: new Date().toISOString(),
       aidHistory: []
     };
     setBeneficiaries(prev => [newBeneficiary, ...prev]);
@@ -1216,8 +1237,64 @@ export const CharityProvider = ({ children }) => {
       }
     }
 
-    addToast(`Family ${newBeneficiary.headName} registered (Token: ${newBeneficiary.tokenNumber})`);
+    if (newBeneficiary.approvalStatus === 'approved') {
+      addToast(`Family ${newBeneficiary.headName} registered & approved (Token: ${newBeneficiary.tokenNumber})`, 'success');
+    } else {
+      addToast(`Family ${newBeneficiary.headName} registered. Submitted for Executive Admin Approval!`, 'info');
+    }
     return newBeneficiary;
+  };
+
+  const approveBeneficiary = async (beneficiaryId) => {
+    const target = beneficiaries.find(b => b.id === beneficiaryId);
+    if (!target) return;
+
+    const approvedRecord = {
+      ...target,
+      approvalStatus: 'approved',
+      status: target.status === 'Pending Approval' ? 'Token Given' : target.status,
+      approvedBy: orgSettings?.president ? `${orgSettings.president} (Admin, President & CEO)` : 'Engr. Arman Hossain (Admin, President & CEO)',
+      approvedAt: new Date().toISOString()
+    };
+
+    setBeneficiaries(prev => prev.map(b => b.id === beneficiaryId ? approvedRecord : b));
+
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      try {
+        await supabase.from('beneficiaries').update(mapAppBeneficiaryToDb(approvedRecord)).eq('id', beneficiaryId);
+      } catch (err) {
+        console.error('Cloud beneficiary approval error:', err);
+      }
+    }
+
+    addToast(`Family ${target.headName} approved! Token ${target.tokenNumber} authorized.`, 'success');
+  };
+
+  const rejectBeneficiary = async (beneficiaryId, reason = '') => {
+    const target = beneficiaries.find(b => b.id === beneficiaryId);
+    if (!target) return;
+
+    const rejectedRecord = {
+      ...target,
+      approvalStatus: 'rejected',
+      status: 'Rejected',
+      rejectedReason: reason || 'Does not meet emergency criteria',
+      approvedBy: null
+    };
+
+    setBeneficiaries(prev => prev.map(b => b.id === beneficiaryId ? rejectedRecord : b));
+
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      try {
+        await supabase.from('beneficiaries').update(mapAppBeneficiaryToDb(rejectedRecord)).eq('id', beneficiaryId);
+      } catch (err) {
+        console.error('Cloud beneficiary reject error:', err);
+      }
+    }
+
+    addToast(`Registration for ${target.headName} has been rejected.`, 'info');
   };
 
   const updateBeneficiary = async (updated) => {
@@ -1620,6 +1697,8 @@ export const CharityProvider = ({ children }) => {
     addBeneficiary,
     updateBeneficiary,
     deleteBeneficiary,
+    approveBeneficiary,
+    rejectBeneficiary,
     addProduct,
     updateProduct,
     deleteProduct,

@@ -302,6 +302,10 @@ export const initialBeneficiaries = [
     familyMembers: 5,
     priorityCategory: 'Widow / Elderly',
     status: 'Delivered',
+    approvalStatus: 'approved',
+    approvedBy: 'Engr. Arman Hossain (Admin, President & CEO)',
+    approvedAt: '2026-02-28',
+    submittedBy: 'Field Survey Team',
     notes: 'Elderly widow living with disabled daughter and 3 school-going grandchildren.',
     aidHistory: [
       {
@@ -321,13 +325,17 @@ export const initialBeneficiaries = [
     familyId: 'EH-FAM-002',
     tokenNumber: 'TKN-002',
     headName: 'Md. Sirajul Islam',
-    guardianName: 'Late Kashem Ali (Father)',
+    guardianName: 'Late Kassem Ali (Father)',
     mobile: '01988223344',
     area: 'Rayerbazar Beribadh, Ward 14, Dhaka',
     nid: '19652619028374',
     familyMembers: 6,
     priorityCategory: 'Day Laborer',
     status: 'Delivered',
+    approvalStatus: 'approved',
+    approvedBy: 'Engr. Arman Hossain (Admin, President & CEO)',
+    approvedAt: '2026-02-28',
+    submittedBy: 'Sadik Hasan',
     notes: 'Daily wage earner; underwent leg surgery last month, currently unable to pull van.',
     aidHistory: [
       {
@@ -354,6 +362,10 @@ export const initialBeneficiaries = [
     familyMembers: 4,
     priorityCategory: 'Disabled',
     status: 'Token Given',
+    approvalStatus: 'approved',
+    approvedBy: 'Engr. Arman Hossain (Admin, President & CEO)',
+    approvedAt: '2026-02-28',
+    submittedBy: 'Field Survey Team',
     notes: 'Visually impaired person selling small household stickers on footpaths.',
     aidHistory: []
   },
@@ -369,6 +381,10 @@ export const initialBeneficiaries = [
     familyMembers: 7,
     priorityCategory: 'Low-Income Family',
     status: 'Pending',
+    approvalStatus: 'approved',
+    approvedBy: 'Engr. Arman Hossain (Admin, President & CEO)',
+    approvedAt: '2026-02-28',
+    submittedBy: 'Sadik Hasan',
     notes: 'Large household with small children; husband does odd tailoring jobs.',
     aidHistory: []
   },
@@ -384,6 +400,10 @@ export const initialBeneficiaries = [
     familyMembers: 4,
     priorityCategory: 'Day Laborer',
     status: 'Token Given',
+    approvalStatus: 'approved',
+    approvedBy: 'Engr. Arman Hossain (Admin, President & CEO)',
+    approvedAt: '2026-02-28',
+    submittedBy: 'Tanvir Ahmed',
     notes: 'Earth-digger / construction helper without steady work.',
     aidHistory: []
   },
@@ -399,6 +419,10 @@ export const initialBeneficiaries = [
     familyMembers: 3,
     priorityCategory: 'Widow / Elderly',
     status: 'Delivered',
+    approvalStatus: 'approved',
+    approvedBy: 'Engr. Arman Hossain (Admin, President & CEO)',
+    approvedAt: '2026-02-28',
+    submittedBy: 'Tanvir Ahmed',
     notes: 'Elderly lady suffering from chronic asthma; no earning family members.',
     aidHistory: [
       {
@@ -425,6 +449,10 @@ export const initialBeneficiaries = [
     familyMembers: 3,
     priorityCategory: 'Orphan Support',
     status: 'Token Given',
+    approvalStatus: 'approved',
+    approvedBy: 'Engr. Arman Hossain (Admin, President & CEO)',
+    approvedAt: '2026-02-28',
+    submittedBy: 'Tanvir Ahmed',
     notes: 'Mother with two minor orphan boys (ages 6 and 9); works part-time housemaid.',
     aidHistory: []
   },
@@ -439,8 +467,13 @@ export const initialBeneficiaries = [
     nid: '19882673928172',
     familyMembers: 5,
     priorityCategory: 'Low-Income Family',
-    status: 'Pending',
-    notes: 'Tea stall helper in Korail; struggles to meet monthly house rent and meals.',
+    status: 'Pending Approval',
+    approvalStatus: 'pending',
+    approvedBy: null,
+    approvedAt: null,
+    submittedBy: 'Tanvir Ahmed (Field Volunteer)',
+    submittedAt: '2026-03-02',
+    notes: 'Tea stall helper in Korail; struggles to meet monthly house rent and meals. Field survey submitted for Admin approval.',
     aidHistory: []
   }
 ];

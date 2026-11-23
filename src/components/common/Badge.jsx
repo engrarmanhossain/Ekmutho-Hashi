@@ -34,7 +34,11 @@ export const StatusBadge = ({ status }) => {
     case 'delivered':
       return <Badge variant="emerald">Delivered (বিতরণ সম্পন্ন)</Badge>;
     case 'token given':
-      return <Badge variant="amber">Token Given (টোকেন প্রাপ্ত)</Badge>;
+      return <Badge variant="teal">Token Authorized (টোকেন প্রাপ্ত)</Badge>;
+    case 'pending approval':
+      return <Badge variant="amber">Pending Approval (অনুমোদন অপেক্ষমান)</Badge>;
+    case 'rejected':
+      return <Badge variant="rose">Rejected (বাতিল)</Badge>;
     case 'pending':
       return <Badge variant="neutral">Pending (অপেক্ষমান)</Badge>;
     case 'active':
@@ -44,6 +48,36 @@ export const StatusBadge = ({ status }) => {
     default:
       return <Badge variant="neutral">{status || 'Unknown'}</Badge>;
   }
+};
+
+export const ApprovalBadge = ({ status }) => {
+  const norm = (status || 'approved').toLowerCase();
+  if (norm === 'approved') {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Approved by Admin
+      </span>
+    );
+  }
+  if (norm === 'pending' || norm === 'pending approval') {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300 animate-pulse shadow-2xs">
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span> Awaiting Admin Approval
+      </span>
+    );
+  }
+  if (norm === 'rejected') {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300 shadow-2xs">
+        <span className="w-1.5 h-1.5 rounded-full bg-rose-600"></span> Rejected
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
+      {status || 'Unknown'}
+    </span>
+  );
 };
 
 export const PriorityBadge = ({ priority }) => {

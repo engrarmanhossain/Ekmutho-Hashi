@@ -24,6 +24,7 @@ export const BeneficiaryTokenModal = ({ isOpen, onClose, beneficiary }) => {
     orgSettings,
     addToast,
     updateBeneficiary,
+    approveBeneficiary,
     permissions,
     isUserAdmin,
     user
@@ -154,6 +155,19 @@ export const BeneficiaryTokenModal = ({ isOpen, onClose, beneficiary }) => {
             </span>
 
             <div className="flex items-center gap-1.5 sm:gap-2">
+              {/* Quick Admin Approve Button if pending */}
+              {isUserAdmin && (beneficiary.approvalStatus === 'pending' || beneficiary.status === 'Pending Approval') && (
+                <button
+                  type="button"
+                  onClick={() => approveBeneficiary(beneficiary.id)}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 rounded-lg shadow-xs transition cursor-pointer"
+                  title="Approve this family & authorize relief token"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Approve Token</span>
+                </button>
+              )}
+
               {/* Staff Edit Token Controls */}
               {canEditToken && (
                 isEditing ? (
@@ -271,6 +285,24 @@ export const BeneficiaryTokenModal = ({ isOpen, onClose, beneficiary }) => {
               <div className="mt-3 py-1 px-2.5 rounded-md bg-teal-800 text-white text-[11px] font-bold text-center">
                 {currentCamp?.name || 'Ramadan Iftar Distribution 2026'}
               </div>
+
+              {/* Executive Admin Approval Status on Token */}
+              {(beneficiary.approvalStatus === 'pending' || beneficiary.status === 'Pending Approval') ? (
+                <div className="mt-2.5 py-1.5 px-2.5 rounded-md bg-amber-500/20 text-amber-900 border border-amber-400 text-[11px] font-bold text-center flex items-center justify-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                  <span>Awaiting Executive Admin Approval • অনুমোদনের জন্য অপেক্ষমান</span>
+                </div>
+              ) : (
+                <div className="mt-2.5 py-1 px-2.5 rounded-md bg-emerald-50 text-emerald-950 border border-emerald-300 text-[10px] font-bold flex items-center justify-between">
+                  <span className="flex items-center gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                    <span>Authorized Token</span>
+                  </span>
+                  <span className="font-semibold text-emerald-800">
+                    Approved by Admin: {beneficiary.approvedBy || 'Engr. Arman Hossain'}
+                  </span>
+                </div>
+              )}
 
               {/* Family details table */}
               <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-slate-800">
