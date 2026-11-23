@@ -1524,6 +1524,32 @@ export const CharityProvider = ({ children }) => {
     return { aidEntry, distributionExpense };
   };
 
+  const verifyUserPassword = (inputPassword) => {
+    if (!inputPassword) return false;
+    const trimmed = inputPassword.trim();
+
+    // 1. Check current logged-in staff user
+    if (user) {
+      const staffMember = staff.find(
+        s => s.email?.toLowerCase() === user.email?.toLowerCase() || s.id === user.id
+      );
+      if (staffMember?.password && staffMember.password === trimmed) {
+        return true;
+      }
+    }
+
+    // 2. Check Founder / Master Admin password (Engr. Arman Hossain)
+    const armanStaff = staff.find(s => s.email?.toLowerCase() === 'arman@ekmuthohashi.org');
+    if (armanStaff?.password && armanStaff.password === trimmed) {
+      return true;
+    }
+    if (trimmed === 'arman2026**') {
+      return true;
+    }
+
+    return false;
+  };
+
   const resetToSampleData = () => {
     setCampaigns(initialCampaigns);
     setDonors(initialDonors);
@@ -1532,8 +1558,17 @@ export const CharityProvider = ({ children }) => {
     setPackages(initialPackages);
     setExpenses(initialExpenses);
     setSelectedCampaign('all');
+
+    // Retain logged-in session, staff accounts, and org settings
+    const activeUser = localStorage.getItem('ekmutho_active_user');
+    const savedStaff = localStorage.getItem('ekmutho_staff');
+    const savedOrg = localStorage.getItem('ekmutho_org_settings');
     localStorage.clear();
-    addToast('Sample Ramadan Iftar data has been reloaded!');
+    if (activeUser) localStorage.setItem('ekmutho_active_user', activeUser);
+    if (savedStaff) localStorage.setItem('ekmutho_staff', savedStaff);
+    if (savedOrg) localStorage.setItem('ekmutho_org_settings', savedOrg);
+
+    addToast('Sample Ramadan Iftar data has been reloaded!', 'success');
   };
 
   const clearAllData = () => {
@@ -1544,8 +1579,17 @@ export const CharityProvider = ({ children }) => {
     setPackages([]);
     setExpenses([]);
     setSelectedCampaign('all');
+
+    // Retain logged-in session, staff accounts, and org settings
+    const activeUser = localStorage.getItem('ekmutho_active_user');
+    const savedStaff = localStorage.getItem('ekmutho_staff');
+    const savedOrg = localStorage.getItem('ekmutho_org_settings');
     localStorage.clear();
-    addToast('All records cleared.', 'info');
+    if (activeUser) localStorage.setItem('ekmutho_active_user', activeUser);
+    if (savedStaff) localStorage.setItem('ekmutho_staff', savedStaff);
+    if (savedOrg) localStorage.setItem('ekmutho_org_settings', savedOrg);
+
+    addToast('All relief and distribution records cleared.', 'info');
   };
 
   const value = {
@@ -1587,6 +1631,7 @@ export const CharityProvider = ({ children }) => {
     distributeAid,
     resetToSampleData,
     clearAllData,
+    verifyUserPassword,
     toasts,
     addToast,
     removeToast,

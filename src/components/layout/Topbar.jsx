@@ -49,7 +49,8 @@ export const Topbar = ({
     permissions,
     currentStaffProfile,
     isUserAdmin,
-    signOutVolunteer
+    signOutVolunteer,
+    verifyUserPassword
   } = useCharity();
 
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -391,14 +392,17 @@ export const Topbar = ({
         </div>
       </header>
 
-      {/* Confirmation Dialogs */}
+      {/* Confirmation Dialogs with Account Password Authorization */}
       <ConfirmDialog
         isOpen={showResetConfirm}
         onClose={() => setShowResetConfirm(false)}
         onConfirm={resetToSampleData}
         title="Reset to Ramadan 2026 Sample Data?"
-        message="This will restore the pre-populated realistic Ramadan Iftar Drive data with donors, inventory, beneficiaries, and expenses."
+        message="This will restore the pre-populated realistic Ramadan Iftar Drive data with donors, inventory, beneficiaries, and expenses. Please enter your account password to authorize."
         confirmText="Yes, Reset Data"
+        requirePassword={true}
+        onVerifyPassword={verifyUserPassword}
+        accountName={user?.user_metadata?.full_name || currentStaffProfile?.fullName || 'Engr. Arman Hossain (Admin)'}
       />
 
       <ConfirmDialog
@@ -406,9 +410,12 @@ export const Topbar = ({
         onClose={() => setShowClearConfirm(false)}
         onConfirm={clearAllData}
         title="Clear All Records?"
-        message="Are you sure you want to clear all records? This removes all donors, beneficiaries, inventory, and expenses so you can start completely fresh."
+        message="Are you sure you want to clear all records? This removes all donors, beneficiaries, inventory, and expenses so you can start completely fresh. Please enter your account password to authorize this destructive action."
         confirmText="Yes, Clear Everything"
         isDestructive={true}
+        requirePassword={true}
+        onVerifyPassword={verifyUserPassword}
+        accountName={user?.user_metadata?.full_name || currentStaffProfile?.fullName || 'Engr. Arman Hossain (Admin)'}
       />
     </>
   );
