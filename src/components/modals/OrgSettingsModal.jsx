@@ -21,7 +21,7 @@ import { ImageAdjusterModal } from '../common/ImageAdjusterModal';
 import { useCharity } from '../../context/CharityContext';
 
 export const OrgSettingsModal = ({ isOpen, onClose }) => {
-  const { orgSettings, updateOrgSettings, resetOrgSettings, isUserAdmin } = useCharity();
+  const { orgSettings, updateOrgSettings, resetOrgSettings, isUserAdmin, addToast } = useCharity();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -108,13 +108,20 @@ export const OrgSettingsModal = ({ isOpen, onClose }) => {
 
   const handleSaveAdjustedLogo = (croppedDataUrl) => {
     setLogoPreview(croppedDataUrl);
-    setFormData(prev => ({ ...prev, logoUrl: croppedDataUrl }));
-    setSuccessMsg('Logo adjusted! Click "Save Changes" below to apply across dashboard.');
+    const updated = { ...formData, logoUrl: croppedDataUrl };
+    setFormData(updated);
+    updateOrgSettings(updated);
+    setSuccessMsg('Organization logo adjusted and saved successfully across dashboard!');
+    if (addToast) addToast('Organization logo updated & saved successfully!', 'success');
   };
 
   const handleRestoreDefaultLogo = () => {
     setLogoPreview('/logo.png');
-    setFormData(prev => ({ ...prev, logoUrl: '/logo.png' }));
+    const updated = { ...formData, logoUrl: '/logo.png' };
+    setFormData(updated);
+    updateOrgSettings(updated);
+    setSuccessMsg('Restored default organization logo.');
+    if (addToast) addToast('Restored default organization logo.', 'info');
   };
 
   const handleSubmit = (e) => {

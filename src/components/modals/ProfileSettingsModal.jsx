@@ -29,7 +29,7 @@ export const ProfileSettingsModal = ({
   onOpenStaffManagement,
   targetStaffMember = null
 }) => {
-  const { user, staff, updateStaffProfile, isUserAdmin } = useCharity();
+  const { user, staff, updateStaffProfile, isUserAdmin, addToast } = useCharity();
 
   // Find default selected staff: targetStaffMember or logged-in user or first staff
   const initialStaffId = targetStaffMember?.id ||
@@ -126,11 +126,26 @@ export const ProfileSettingsModal = ({
 
   const handleSaveAdjustedAvatar = (croppedDataUrl) => {
     setAvatarUrl(croppedDataUrl);
-    setSuccessMsg('Profile picture adjusted! Click "Save Changes" below to apply.');
+    if (currentStaff) {
+      updateStaffProfile({
+        ...currentStaff,
+        avatarUrl: croppedDataUrl
+      }, currentStaff.id);
+    }
+    setSuccessMsg('Profile picture updated and saved successfully!');
+    if (addToast) addToast('Profile picture saved successfully!', 'success');
   };
 
   const handleRemoveAvatar = () => {
     setAvatarUrl(null);
+    if (currentStaff) {
+      updateStaffProfile({
+        ...currentStaff,
+        avatarUrl: null
+      }, currentStaff.id);
+    }
+    setSuccessMsg('Profile picture removed and saved.');
+    if (addToast) addToast('Profile picture removed.', 'info');
   };
 
   const handleSave = (e) => {

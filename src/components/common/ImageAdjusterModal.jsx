@@ -147,57 +147,77 @@ export const ImageAdjusterModal = ({
     if (!imageSrc) return;
 
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    // Only set crossOrigin for external http/https URLs to prevent tainting data/blob URLs
+    if (imageSrc.startsWith('http://') || imageSrc.startsWith('https://')) {
+      img.crossOrigin = 'anonymous';
+    }
+
     img.onload = () => {
-      const OUTPUT_SIZE = 600; // Output 600x600 high res
-      const canvas = document.createElement('canvas');
-      canvas.width = OUTPUT_SIZE;
-      canvas.height = OUTPUT_SIZE;
-      const ctx = canvas.getContext('2d');
+      try {
+        const OUTPUT_SIZE = 600; // Output 600x600 high res
+        const canvas = document.createElement('canvas');
+        canvas.width = OUTPUT_SIZE;
+        canvas.height = OUTPUT_SIZE;
+        const ctx = canvas.getContext('2d');
 
-      // Clear background
-      ctx.clearRect(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
+        // Clear background
+        ctx.clearRect(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
 
-      // If circle crop, clip to circle
-      if (aspectType === 'circle') {
-        ctx.beginPath();
-        ctx.arc(OUTPUT_SIZE / 2, OUTPUT_SIZE / 2, OUTPUT_SIZE / 2, 0, Math.PI * 2);
-        ctx.closePath();
-        ctx.clip();
+        // If circle crop, clip to circle
+        if (aspectType === 'circle') {
+          ctx.beginPath();
+          ctx.arc(OUTPUT_SIZE / 2, OUTPUT_SIZE / 2, OUTPUT_SIZE / 2, 0, Math.PI * 2);
+          ctx.closePath();
+          ctx.clip();
+        }
+
+        ctx.save();
+        // Calculate ratio between preview crop size and export canvas size
+        const scaleFactor = OUTPUT_SIZE / CROP_SIZE;
+
+        // 1. Move canvas origin to the exact target center:
+        // Center of canvas (OUTPUT_SIZE / 2) + panned offset scaled to export resolution
+        ctx.translate(
+          OUTPUT_SIZE / 2 + pan.x * scaleFactor,
+          OUTPUT_SIZE / 2 + pan.y * scaleFactor
+        );
+
+        // 2. Rotate around the image center
+        ctx.rotate((rotation * Math.PI) / 180);
+
+        // 3. Scale/zoom around the image center
+        ctx.scale(zoom, zoom);
+
+        // 4. Calculate how the image is fitted in preview
+        const imgAspect = img.naturalWidth / img.naturalHeight;
+        let drawWidth, drawHeight;
+
+        if (imgAspect >= 1) {
+          drawHeight = OUTPUT_SIZE;
+          drawWidth = OUTPUT_SIZE * imgAspect;
+        } else {
+          drawWidth = OUTPUT_SIZE;
+          drawHeight = OUTPUT_SIZE / imgAspect;
+        }
+
+        // 5. Draw image centered at (0, 0)
+        ctx.drawImage(img, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+        ctx.restore();
+
+        const croppedDataUrl = canvas.toDataURL('image/png', 0.95);
+        onSave(croppedDataUrl);
+        onClose();
+      } catch (err) {
+        console.error('Canvas export error:', err);
+        // Fallback: save original if canvas export fails
+        onSave(imageSrc);
+        onClose();
       }
+    };
 
-      ctx.save();
-      // Move to center
-      ctx.translate(OUTPUT_SIZE / 2, OUTPUT_SIZE / 2);
-
-      // Apply rotation
-      ctx.rotate((rotation * Math.PI) / 180);
-
-      // Apply zoom
-      ctx.scale(zoom, zoom);
-
-      // Apply pan
-      // Calculate ratio between preview crop size and export canvas size
-      const scaleFactor = OUTPUT_SIZE / CROP_SIZE;
-      ctx.translate(pan.x * scaleFactor, pan.y * scaleFactor);
-
-      // Calculate how the image is fitted in preview
-      const imgAspect = img.naturalWidth / img.naturalHeight;
-      let drawWidth, drawHeight;
-
-      if (imgAspect >= 1) {
-        drawHeight = OUTPUT_SIZE;
-        drawWidth = OUTPUT_SIZE * imgAspect;
-      } else {
-        drawWidth = OUTPUT_SIZE;
-        drawHeight = OUTPUT_SIZE / imgAspect;
-      }
-
-      ctx.drawImage(img, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
-      ctx.restore();
-
-      const croppedDataUrl = canvas.toDataURL('image/png', 0.95);
-      onSave(croppedDataUrl);
+    img.onerror = (err) => {
+      console.error('Image load error for cropping:', err);
+      onSave(imageSrc);
       onClose();
     };
 
@@ -273,9 +293,11 @@ export const ImageAdjusterModal = ({
               {/* Image with transforms */}
               {imageLoaded && (
                 <div
-                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-transform duration-75 ease-out"
+                  className="absolute pointer-events-none transition-transform duration-75 ease-out"
                   style={{
-                    transform: `translate(calc(-50% + ${pan.x}px), calc(-50% + ${pan.y}px)) rotate(${rotation}deg) scale(${zoom})`,
+                    left: `${CROP_SIZE / 2}px`,
+                    top: `${CROP_SIZE / 2}px`,
+                    transform: `translate(-50%, -50%) translate(${pan.x}px, ${pan.y}px) rotate(${rotation}deg) scale(${zoom})`,
                     transformOrigin: 'center center'
                   }}
                 >
