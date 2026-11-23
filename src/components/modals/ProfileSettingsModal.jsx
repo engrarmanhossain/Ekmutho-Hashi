@@ -17,6 +17,7 @@ import {
   Trash2,
   Sliders,
   Crop,
+  ArrowRight,
   Image as ImageIcon
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
@@ -29,7 +30,7 @@ export const ProfileSettingsModal = ({
   onOpenStaffManagement,
   targetStaffMember = null
 }) => {
-  const { user, staff, updateStaffProfile, isUserAdmin, addToast } = useCharity();
+  const { user, staff, beneficiaries, donors, updateStaffProfile, isUserAdmin, addToast } = useCharity();
 
   // Find default selected staff: targetStaffMember or logged-in user or first staff
   const initialStaffId = targetStaffMember?.id ||
@@ -191,6 +192,11 @@ export const ProfileSettingsModal = ({
     }, 1200);
   };
 
+  const pendingReliefCount = beneficiaries?.filter(b => b.approvalStatus === 'pending' || b.status === 'Pending Approval').length || 0;
+  const pendingDonationsCount = donors?.filter(d => d.approvalStatus === 'pending' || d.status === 'Pending Verification').length || 0;
+  const pendingStaffCount = staff?.filter(s => s.status === 'pending').length || 0;
+  const totalPending = pendingReliefCount + pendingDonationsCount + pendingStaffCount;
+
   return (
     <Modal
       isOpen={isOpen}
@@ -199,7 +205,50 @@ export const ProfileSettingsModal = ({
       subtitle={isUserAdmin ? "Engr. Arman Hossain (Admin) • সকল স্টাফ ও স্বেচ্ছাসেবকের প্রোফাইল ও ছবি নিয়ন্ত্রণ" : "স্বেচ্ছাসেবক প্রোফাইল ও একাউন্ট আপডেট"}
       maxWidth="max-w-xl"
     >
-      <form onSubmit={handleSave} className="space-y-4">
+      <div className="space-y-4">
+        {/* ADMIN ONLY: Pending Approvals Panel Shortcut */}
+        {isUserAdmin && onOpenStaffManagement && (
+          <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-teal-500/10 to-amber-500/15 border-2 border-amber-400/50 shadow-xs flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-9 h-9 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center shrink-0 font-bold shadow-xs">
+                <ShieldCheck className="w-5 h-5 text-slate-950" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-extrabold text-slate-900 text-xs">
+                    Pending Approvals Panel (অনুমোদন প্যানেল)
+                  </span>
+                  {totalPending > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-rose-600 text-white animate-pulse">
+                      {totalPending} New
+                    </span>
+                  )}
+                </div>
+                <div className="text-[11px] text-slate-600 flex flex-wrap items-center gap-2 mt-0.5">
+                  <span>Relief: <strong className={pendingReliefCount > 0 ? 'text-amber-800' : ''}>{pendingReliefCount}</strong></span>
+                  <span>•</span>
+                  <span>Donations: <strong className={pendingDonationsCount > 0 ? 'text-emerald-800' : ''}>{pendingDonationsCount}</strong></span>
+                  <span>•</span>
+                  <span>Staff: <strong className={pendingStaffCount > 0 ? 'text-purple-800' : ''}>{pendingStaffCount}</strong></span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenStaffManagement();
+              }}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 transition shadow-xs flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-98"
+            >
+              <span>Review Panel</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
+        <form onSubmit={handleSave} className="space-y-4">
         {/* ADMIN ONLY: Staff Selector Dropdown to configure ANY staff member */}
         {isUserAdmin && (
           <div className="p-3 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-teal-500/10 border border-amber-300/80 space-y-1.5">
@@ -551,15 +600,16 @@ export const ProfileSettingsModal = ({
         </div>
       </form>
 
-      {/* Interactive Image Adjuster / Crop Modal */}
-      <ImageAdjusterModal
-        isOpen={isAdjusterOpen}
-        onClose={() => setIsAdjusterOpen(false)}
-        imageSrc={adjusterImage}
-        onSave={handleSaveAdjustedAvatar}
-        aspectType="circle"
-        title={`Adjust Profile Picture • ${fullName}`}
-      />
+        {/* Interactive Image Adjuster / Crop Modal */}
+        <ImageAdjusterModal
+          isOpen={isAdjusterOpen}
+          onClose={() => setIsAdjusterOpen(false)}
+          imageSrc={adjusterImage}
+          onSave={handleSaveAdjustedAvatar}
+          aspectType="circle"
+          title={`Adjust Profile Picture • ${fullName}`}
+        />
+      </div>
     </Modal>
   );
 };

@@ -9,7 +9,12 @@ import {
   Trash2,
   FileSpreadsheet,
   Receipt,
-  UserCheck
+  UserCheck,
+  ShieldCheck,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Heart
 } from 'lucide-react';
 import { useCharity } from '../../context/CharityContext';
 import { formatCurrency, formatDate } from '../../utils/formatters';
@@ -22,6 +27,8 @@ export const DonorsView = ({ onOpenAddFund, onOpenReceipt }) => {
     donors,
     campaigns,
     deleteDonor,
+    approveDonor,
+    rejectDonor,
     selectedCampaign,
     setSelectedCampaign,
     permissions
@@ -30,7 +37,13 @@ export const DonorsView = ({ onOpenAddFund, onOpenReceipt }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all'); // all, cash, product
   const [filterPayment, setFilterPayment] = useState('all');
+  const [filterApproval, setFilterApproval] = useState('all'); // all, approved, pending
   const [donorToDelete, setDonorToDelete] = useState(null);
+
+  const pendingDonorsList = donors.filter(
+    d => d.approvalStatus === 'pending' || d.status === 'Pending Verification'
+  );
+  const pendingDonorsCount = pendingDonorsList.length;
 
   // Filtered Donors
   const filteredList = useMemo(() => {
@@ -47,6 +60,11 @@ export const DonorsView = ({ onOpenAddFund, onOpenReceipt }) => {
       if (filterPayment !== 'all' && d.paymentMethod !== filterPayment) {
         return false;
       }
+      // Approval Status filter
+      const isPend = d.approvalStatus === 'pending' || d.status === 'Pending Verification';
+      if (filterApproval === 'pending' && !isPend) return false;
+      if (filterApproval === 'approved' && isPend) return false;
+
       // Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
@@ -55,11 +73,12 @@ export const DonorsView = ({ onOpenAddFund, onOpenReceipt }) => {
         const matchesReceipt = d.receiptId?.toLowerCase().includes(q);
         const matchesRef = d.reference?.toLowerCase().includes(q);
         const matchesNote = d.note?.toLowerCase().includes(q);
-        return matchesName || matchesPhone || matchesReceipt || matchesRef || matchesNote;
+        const matchesTrx = d.transactionId?.toLowerCase().includes(q);
+        return matchesName || matchesPhone || matchesReceipt || matchesRef || matchesNote || matchesTrx;
       }
       return true;
     });
-  }, [donors, selectedCampaign, filterType, filterPayment, searchQuery]);
+  }, [donors, selectedCampaign, filterType, filterPayment, filterApproval, searchQuery]);
 
   // Aggregate stats
   const totalCashInFiltered = useMemo(() => {
@@ -184,6 +203,39 @@ export const DonorsView = ({ onOpenAddFund, onOpenReceipt }) => {
         </div>
       </div>
 
+      {/* ADMIN ONLY: Pending Donation Verification Review Banner */}
+      {permissions.isAdmin && pendingDonorsCount > 0 && (
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-emerald-500/15 border-2 border-emerald-400/50 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <ShieldCheck className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold text-slate-900 text-sm">
+                  {pendingDonorsCount} Online Donation {pendingDonorsCount === 1 ? 'Pledge' : 'Pledges'} Awaiting Admin Verification
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white animate-pulse">
+                  Action Required
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 mt-0.5">
+                Donors submitted TrxID references online. Verify bank/bKash deposit and approve to credit ledger and issue official receipt.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setFilterApproval(filterApproval === 'pending' ? 'all' : 'pending')}
+            className="px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-xs flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-98"
+          >
+            <Clock className="w-3.5 h-3.5" />
+            <span>{filterApproval === 'pending' ? 'Show All Donors' : `Review Pending (${pendingDonorsCount})`}</span>
+          </button>
+        </div>
+      )}
+
       {/* Search & Filter Toolbar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
         <div className="relative flex-1 min-w-[220px]">
@@ -198,6 +250,17 @@ export const DonorsView = ({ onOpenAddFund, onOpenReceipt }) => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* Approval filter */}
+          <select
+            value={filterApproval}
+            onChange={(e) => setFilterApproval(e.target.value)}
+            className="px-3 py-2 text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50 text-slate-700 focus:bg-white"
+          >
+            <option value="all">All Verification Status</option>
+            <option value="approved">Verified / Approved</option>
+            <option value="pending">Pending Verification ({pendingDonorsCount})</option>
+          </select>
+
           {/* Contribution type filter */}
           <select
             value={filterType}
@@ -236,6 +299,7 @@ export const DonorsView = ({ onOpenAddFund, onOpenReceipt }) => {
                 <th className="py-3.5 px-4">Campaign Drive</th>
                 <th className="py-3.5 px-4">Contribution / Amount</th>
                 <th className="py-3.5 px-4">Payment Method</th>
+                <th className="py-3.5 px-4">Verification</th>
                 <th className="py-3.5 px-4">Date</th>
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
@@ -245,9 +309,15 @@ export const DonorsView = ({ onOpenAddFund, onOpenReceipt }) => {
                 filteredList.map((donor) => {
                   const camp = campaigns.find(c => c.id === donor.campaignId);
                   const isAnon = donor.donorName.toLowerCase().includes('anonymous') || donor.donorName.includes('বেনামী');
+                  const isPending = donor.approvalStatus === 'pending' || donor.status === 'Pending Verification';
 
                   return (
-                    <tr key={donor.id} className="hover:bg-slate-50/80 transition">
+                    <tr
+                      key={donor.id}
+                      className={`transition ${
+                        isPending ? 'bg-amber-50/40 hover:bg-amber-50/70' : 'hover:bg-slate-50/80'
+                      }`}
+                    >
                       <td className="py-3.5 px-4 font-mono font-bold text-slate-800">
                         <button
                           type="button"
@@ -312,12 +382,58 @@ export const DonorsView = ({ onOpenAddFund, onOpenReceipt }) => {
                         )}
                       </td>
 
+                      <td className="py-3.5 px-4">
+                        {isPending ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300">
+                            <Clock className="w-3 h-3 text-amber-600" /> Pending
+                          </span>
+                        ) : donor.approvalStatus === 'rejected' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
+                            <XCircle className="w-3 h-3 text-rose-600" /> Rejected
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified
+                          </span>
+                        )}
+                        {donor.submittedBy && (
+                          <span className="block text-[10px] text-slate-400 mt-0.5">
+                            {donor.submittedBy}
+                          </span>
+                        )}
+                      </td>
+
                       <td className="py-3.5 px-4 text-xs text-slate-500 whitespace-nowrap">
                         {formatDate(donor.date)}
                       </td>
 
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          {permissions.isAdmin && isPending && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => approveDonor(donor.id)}
+                                className="px-2.5 py-1 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95"
+                                title="Verify transaction and authorize receipt"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>Verify</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const reason = window.prompt(`Reason to reject donation from ${donor.donorName}:`, 'Unverified transaction');
+                                  if (reason !== null) rejectDonor(donor.id, reason);
+                                }}
+                                className="px-2 py-1 rounded-lg text-xs font-bold text-rose-700 bg-white border border-rose-200 hover:bg-rose-50 transition cursor-pointer"
+                                title="Decline unverified donation"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          )}
+
                           <button
                             type="button"
                             onClick={() => onOpenReceipt(donor)}
@@ -343,7 +459,7 @@ export const DonorsView = ({ onOpenAddFund, onOpenReceipt }) => {
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-10 text-center text-slate-400 text-xs">
+                  <td colSpan={8} className="py-10 text-center text-slate-400 text-xs">
                     No donor records match the selected filters.
                   </td>
                 </tr>

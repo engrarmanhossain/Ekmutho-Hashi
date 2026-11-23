@@ -45,6 +45,9 @@ export const Sidebar = ({
   } = useCharity();
 
   const pendingStaffCount = staff ? staff.filter(s => s.status === 'pending').length : 0;
+  const pendingReliefCount = beneficiaries ? beneficiaries.filter(b => b.approvalStatus === 'pending' || b.status === 'Pending Approval').length : 0;
+  const pendingDonorsCount = donors ? donors.filter(d => d.approvalStatus === 'pending' || d.status === 'Pending Verification').length : 0;
+  const totalPendingApprovals = pendingStaffCount + pendingReliefCount + pendingDonorsCount;
 
   const navItems = [
     {
@@ -355,9 +358,9 @@ export const Sidebar = ({
                 </div>
               </div>
 
-              {isUserAdmin && pendingStaffCount > 0 && (
+              {isUserAdmin && totalPendingApprovals > 0 && (
                 <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white animate-pulse shrink-0">
-                  {pendingStaffCount}
+                  {totalPendingApprovals}
                 </span>
               )}
             </button>

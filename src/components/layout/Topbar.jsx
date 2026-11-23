@@ -46,6 +46,8 @@ export const Topbar = ({
     isCloudSyncing,
     user,
     staff,
+    beneficiaries,
+    donors,
     orgSettings,
     viewMode,
     permissions,
@@ -60,6 +62,9 @@ export const Topbar = ({
   const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
 
   const pendingStaffCount = staff ? staff.filter(s => s.status === 'pending').length : 0;
+  const pendingReliefCount = beneficiaries ? beneficiaries.filter(b => b.approvalStatus === 'pending' || b.status === 'Pending Approval').length : 0;
+  const pendingDonorsCount = donors ? donors.filter(d => d.approvalStatus === 'pending' || d.status === 'Pending Verification').length : 0;
+  const totalPendingApprovals = pendingStaffCount + pendingReliefCount + pendingDonorsCount;
 
   return (
     <>
@@ -144,19 +149,19 @@ export const Topbar = ({
               </button>
             )}
 
-            {/* 4. ADMIN-ONLY: STAFF APPROVALS & TEAM MANAGEMENT */}
+            {/* 4. ADMIN-ONLY: APPROVALS & TEAM MANAGEMENT */}
             {permissions.canManageStaff && onOpenStaffManagement && (
               <button
                 type="button"
                 onClick={onOpenStaffManagement}
-                className="relative inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-900 border border-amber-300 hover:bg-amber-500/25 transition shadow-xs"
-                title="Staff Approvals, Roles & Roster"
+                className="relative inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-900 border border-amber-300 hover:bg-amber-500/25 transition shadow-xs cursor-pointer"
+                title="Executive Approvals (Relief, Donations & Staff)"
               >
-                <Users className="w-3.5 h-3.5 text-amber-700" />
-                <span className="hidden md:inline">Staff</span>
-                {pendingStaffCount > 0 && (
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-700" />
+                <span className="hidden md:inline">Approvals</span>
+                {totalPendingApprovals > 0 && (
                   <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white animate-pulse">
-                    {pendingStaffCount}
+                    {totalPendingApprovals}
                   </span>
                 )}
               </button>
@@ -335,8 +340,8 @@ export const Topbar = ({
                         }}
                         className="w-full text-left px-3.5 py-2 flex items-center gap-2 hover:bg-amber-50 text-amber-900 transition"
                       >
-                        <Users className="w-3.5 h-3.5 text-amber-600" />
-                        <span>Staff Approvals ({pendingStaffCount})</span>
+                        <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Pending Approvals ({totalPendingApprovals})</span>
                       </button>
                     )}
 

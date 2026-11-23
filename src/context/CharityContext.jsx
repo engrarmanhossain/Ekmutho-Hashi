@@ -178,7 +178,11 @@ export const CharityProvider = ({ children }) => {
     transactionId: r.transaction_id,
     date: r.date,
     note: r.note,
-    recordedBy: r.recorded_by
+    recordedBy: r.recorded_by,
+    approvalStatus: r.approval_status || (r.status === 'Pending Verification' ? 'pending' : 'approved'),
+    status: r.status || 'Verified',
+    approvedBy: r.approved_by || null,
+    submittedBy: r.submitted_by || null
   });
 
   const mapAppDonorToDb = (d) => ({
@@ -195,7 +199,11 @@ export const CharityProvider = ({ children }) => {
     transaction_id: d.transactionId || null,
     date: d.date,
     note: d.note || null,
-    recorded_by: user?.user_metadata?.full_name || user?.email || 'Volunteer'
+    recorded_by: user?.user_metadata?.full_name || user?.email || 'Volunteer',
+    approval_status: d.approvalStatus || 'approved',
+    status: d.status || 'Verified',
+    approved_by: d.approvedBy || null,
+    submitted_by: d.submittedBy || null
   });
 
   const mapDbBeneficiary = (r) => ({
@@ -1079,13 +1087,13 @@ export const CharityProvider = ({ children }) => {
   // Derived figures
   const totalCashCollected = useMemo(() => {
     return filteredDonors
-      .filter(d => d.contributionType === 'cash')
+      .filter(d => d.contributionType === 'cash' && d.approvalStatus !== 'rejected')
       .reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
   }, [filteredDonors]);
 
   const totalProductDonationsValue = useMemo(() => {
     return filteredDonors
-      .filter(d => d.contributionType === 'product')
+      .filter(d => d.contributionType === 'product' && d.approvalStatus !== 'rejected')
       .reduce((sum, d) => sum + (Number(d.productDetails?.estimatedValue) || 0), 0);
   }, [filteredDonors]);
 
@@ -1175,15 +1183,23 @@ export const CharityProvider = ({ children }) => {
   // Action: Add Donor
   const addDonor = async (donorData) => {
     const nextReceiptNum = 1000 + donors.length + 1;
+    const isApprovedByAdmin = isUserAdmin && donorData.approvalStatus !== 'pending';
+
     const newDonor = {
       ...donorData,
       id: `DON-${Date.now().toString().slice(-4)}`,
       receiptId: `EH-REC-${nextReceiptNum}`,
-      date: donorData.date || new Date().toISOString().split('T')[0]
+      date: donorData.date || new Date().toISOString().split('T')[0],
+      status: donorData.status || (isApprovedByAdmin ? 'Verified' : 'Pending Verification'),
+      approvalStatus: isApprovedByAdmin ? 'approved' : (donorData.approvalStatus || 'pending'),
+      approvedBy: isApprovedByAdmin ? (orgSettings?.president ? `${orgSettings.president} (Admin, President & CEO)` : 'Engr. Arman Hossain (Admin, President & CEO)') : null,
+      approvedAt: isApprovedByAdmin ? new Date().toISOString() : null,
+      submittedBy: donorData.submittedBy || user?.user_metadata?.full_name || user?.email || 'Public Online Portal',
+      submittedAt: donorData.submittedAt || new Date().toISOString()
     };
 
-    // If direct product donation, optionally credit inventory
-    if (newDonor.contributionType === 'product' && newDonor.productDetails?.productId) {
+    // If direct product donation, optionally credit inventory (only if approved)
+    if (newDonor.approvalStatus === 'approved' && newDonor.contributionType === 'product' && newDonor.productDetails?.productId) {
       const prodId = newDonor.productDetails.productId;
       const qty = Number(newDonor.productDetails.quantity) || 0;
       setInventory(prev => prev.map(item => {
@@ -1213,8 +1229,84 @@ export const CharityProvider = ({ children }) => {
       }
     }
 
-    addToast(`Donation recorded from ${newDonor.donorName}! Receipt: ${newDonor.receiptId}`);
+    if (newDonor.approvalStatus === 'approved') {
+      addToast(`Donation recorded from ${newDonor.donorName}! Receipt: ${newDonor.receiptId}`, 'success');
+    } else {
+      addToast(`Donation from ${newDonor.donorName} submitted for Executive Admin verification!`, 'info');
+    }
     return newDonor;
+  };
+
+  const approveDonor = async (donorId) => {
+    const target = donors.find(d => d.id === donorId);
+    if (!target) return;
+
+    const approvedRecord = {
+      ...target,
+      approvalStatus: 'approved',
+      status: 'Verified',
+      approvedBy: orgSettings?.president ? `${orgSettings.president} (Admin, President & CEO)` : 'Engr. Arman Hossain (Admin, President & CEO)',
+      approvedAt: new Date().toISOString()
+    };
+
+    // If direct product donation, credit inventory upon approval
+    if (target.contributionType === 'product' && target.productDetails?.productId) {
+      const prodId = target.productDetails.productId;
+      const qty = Number(target.productDetails.quantity) || 0;
+      setInventory(prev => prev.map(item => {
+        if (item.id === prodId) {
+          const updated = {
+            ...item,
+            qtyDonated: (Number(item.qtyDonated) || 0) + qty
+          };
+          const supabase = getSupabaseClient();
+          if (supabase) {
+            supabase.from('inventory').update(mapAppInventoryToDb(updated)).eq('id', item.id).then();
+          }
+          return updated;
+        }
+        return item;
+      }));
+    }
+
+    setDonors(prev => prev.map(d => d.id === donorId ? approvedRecord : d));
+
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      try {
+        await supabase.from('donors').update(mapAppDonorToDb(approvedRecord)).eq('id', donorId);
+      } catch (err) {
+        console.error('Cloud donor approval error:', err);
+      }
+    }
+
+    addToast(`Donation of ৳${approvedRecord.amount || 0} from ${approvedRecord.donorName} verified & approved!`, 'success');
+  };
+
+  const rejectDonor = async (donorId, reason = '') => {
+    const target = donors.find(d => d.id === donorId);
+    if (!target) return;
+
+    const rejectedRecord = {
+      ...target,
+      approvalStatus: 'rejected',
+      status: 'Rejected',
+      rejectedReason: reason || 'Unverified transaction / Payment not received',
+      approvedBy: null
+    };
+
+    setDonors(prev => prev.map(d => d.id === donorId ? rejectedRecord : d));
+
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      try {
+        await supabase.from('donors').update(mapAppDonorToDb(rejectedRecord)).eq('id', donorId);
+      } catch (err) {
+        console.error('Cloud donor reject error:', err);
+      }
+    }
+
+    addToast(`Donation from ${target.donorName} marked as rejected.`, 'info');
   };
 
   const deleteDonor = async (id) => {
@@ -1724,6 +1816,8 @@ export const CharityProvider = ({ children }) => {
     deleteCampaign,
     addDonor,
     deleteDonor,
+    approveDonor,
+    rejectDonor,
     addBeneficiary,
     updateBeneficiary,
     deleteBeneficiary,
