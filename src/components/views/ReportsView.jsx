@@ -27,8 +27,12 @@ export const ReportsView = () => {
     inventory,
     beneficiaries,
     getProductStock,
-    orgSettings
+    orgSettings,
+    viewMode,
+    permissions
   } = useCharity();
+
+  const isPublicMode = viewMode === 'public' || permissions?.isPublic;
 
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
@@ -46,13 +50,15 @@ export const ReportsView = () => {
         date: d.date,
         type: 'IN',
         category: 'Donor Contribution',
-        description: `Received from ${d.donorName} (${d.receiptId}) - ${d.note || 'Relief fund'}`,
+        description: isPublicMode
+          ? 'Donor Contribution (নগদ অনুদান)'
+          : `Received from ${d.donorName} (${d.receiptId}) - ${d.note || 'Relief fund'}`,
         paymentMethod: d.paymentMethod,
         inflow: Number(d.amount) || 0,
         outflow: 0,
         campaignId: d.campaignId,
-        reference: d.receiptId,
-        party: d.donorName
+        reference: isPublicMode ? 'VERIFIED' : d.receiptId,
+        party: isPublicMode ? 'Generous Donor (নাম প্রকাশে অনিচ্ছুক)' : d.donorName
       }));
 
     // Collect all outflows (expenses with monetary amount > 0)
@@ -63,13 +69,15 @@ export const ReportsView = () => {
         date: e.date,
         type: 'OUT',
         category: e.type,
-        description: e.note || (e.isDistribution ? `Cash aid to ${e.linkedBeneficiaryName}` : `${e.type} expenditure`),
+        description: isPublicMode && e.isDistribution
+          ? 'Relief aid distributed to verified family'
+          : (e.note || (e.isDistribution ? `Cash aid to ${e.linkedBeneficiaryName}` : `${e.type} expenditure`)),
         paymentMethod: e.paymentMethod,
         inflow: 0,
         outflow: Number(e.amount) || 0,
         campaignId: e.campaignId,
         reference: e.id,
-        party: e.handledBy
+        party: isPublicMode && e.isDistribution ? 'Verified Needy Family' : e.handledBy
       }));
 
     // Merge and sort chronologically (oldest first for correct running balance calculation)

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { CharityProvider } from './context/CharityContext';
+import React, { useState, useEffect } from 'react';
+import { CharityProvider, useCharity } from './context/CharityContext';
 import { Layout } from './components/layout/Layout';
 
 // Views
@@ -26,7 +26,16 @@ import { OrgSettingsModal } from './components/modals/OrgSettingsModal';
 import { PublicDonationModal } from './components/modals/PublicDonationModal';
 
 function AppContent() {
+  const { viewMode, permissions } = useCharity();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const isPublicMode = viewMode === 'public' || permissions?.isPublic;
+
+  // Protect donor and beneficiary privacy in public mode
+  useEffect(() => {
+    if (isPublicMode && (activeTab === 'donors' || activeTab === 'beneficiaries')) {
+      setActiveTab('dashboard');
+    }
+  }, [isPublicMode, activeTab]);
 
   // Quick Action Modal states
   const [isAddFundOpen, setIsAddFundOpen] = useState(false);
@@ -84,7 +93,9 @@ function AppContent() {
           onOpenAddExpense={() => setIsAddExpenseOpen(true)}
           onOpenDistributeAid={() => handleOpenDistributeAid(null)}
           onOpenReceipt={(donor) => setReceiptDonor(donor)}
-          onOpenToken={(beneficiary) => setTokenBeneficiary(beneficiary)}
+          onOpenToken={(beneficiary) => {
+            if (!isPublicMode) setTokenBeneficiary(beneficiary);
+          }}
         />
       )}
 

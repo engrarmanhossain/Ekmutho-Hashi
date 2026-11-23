@@ -101,13 +101,17 @@ export const DashboardView = ({
     return stock <= (item.minAlertStock || 15);
   });
 
+  const isPublicMode = viewMode === 'public' || permissions?.isPublic;
+
   // Recent 10 activities (merged donors + expenses + distributions)
   const mergedActivities = [
     ...filteredDonors.map(d => ({
       id: d.id,
       type: 'donation',
-      title: `Fund Received: ${d.donorName}`,
-      subtitle: d.contributionType === 'cash' ? `${formatCurrency(d.amount)} via ${d.paymentMethod}` : `In-Kind: ${d.productDetails?.quantity} ${d.productDetails?.unit} ${d.productDetails?.productName}`,
+      title: isPublicMode ? 'Fund Contribution Received' : `Fund Received: ${d.donorName}`,
+      subtitle: isPublicMode
+        ? (d.contributionType === 'cash' ? 'Donor Contribution (নগদ অনুদান)' : 'In-Kind Food/Relief Item Contribution')
+        : (d.contributionType === 'cash' ? `${formatCurrency(d.amount)} via ${d.paymentMethod}` : `In-Kind: ${d.productDetails?.quantity} ${d.productDetails?.unit} ${d.productDetails?.productName}`),
       amount: d.contributionType === 'cash' ? d.amount : d.productDetails?.estimatedValue,
       date: d.date,
       badge: d.contributionType === 'cash' ? 'Fund In' : 'Product In',
@@ -117,8 +121,12 @@ export const DashboardView = ({
     ...filteredExpenses.map(e => ({
       id: e.id,
       type: e.isDistribution ? 'distribution' : 'expense',
-      title: e.isDistribution ? `Aid Distributed to ${e.linkedBeneficiaryName || 'Family'}` : `Expense: ${e.type}`,
-      subtitle: e.note || (e.isDistribution ? 'Relief package handed over' : 'Market purchase / Logistics'),
+      title: e.isDistribution
+        ? (isPublicMode ? 'Food & Relief Aid Distributed' : `Aid Distributed to ${e.linkedBeneficiaryName || 'Family'}`)
+        : `Expense: ${e.type}`,
+      subtitle: isPublicMode && e.isDistribution
+        ? 'Relief package handed over to verified family'
+        : (e.note || (e.isDistribution ? 'Relief package handed over' : 'Market purchase / Logistics')),
       amount: e.amount,
       date: e.date,
       badge: e.isDistribution ? 'Aid Delivered' : 'Expense Out',

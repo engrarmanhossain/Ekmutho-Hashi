@@ -95,6 +95,15 @@ export const Sidebar = ({
     }
   ];
 
+  // In public mode, hide sensitive Donor and Beneficiary tabs for family & donor privacy
+  const isPublicMode = viewMode === 'public' || permissions?.isPublic;
+  const visibleNavItems = navItems.filter((item) => {
+    if (isPublicMode && (item.id === 'donors' || item.id === 'beneficiaries')) {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <>
       {/* Mobile Backdrop */}
@@ -191,7 +200,7 @@ export const Sidebar = ({
             Navigation Menu
           </div>
 
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
 

@@ -24,8 +24,11 @@ export const ExpensesView = ({ onOpenAddExpense, onOpenDistributeAid }) => {
     campaigns,
     deleteExpense,
     selectedCampaign,
-    permissions
+    permissions,
+    viewMode
   } = useCharity();
+
+  const isPublicMode = viewMode === 'public' || permissions?.isPublic;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all'); // all, market, logistics, distribution, cashaid
@@ -81,7 +84,7 @@ export const ExpensesView = ({ onOpenAddExpense, onOpenDistributeAid }) => {
         'Campaign': camp?.name || e.campaignId,
         'Category / Type': e.type,
         'Is Distribution': e.isDistribution ? 'Yes' : 'No',
-        'Beneficiary': e.linkedBeneficiaryName || 'N/A',
+        'Beneficiary': e.linkedBeneficiaryName ? (isPublicMode ? 'Verified Needy Family (Confidential)' : e.linkedBeneficiaryName) : 'N/A',
         'Amount (BDT)': e.amount,
         'Items Distributed / Purchased': itemsStr,
         'Payment Method': e.paymentMethod,
@@ -266,7 +269,7 @@ export const ExpensesView = ({ onOpenAddExpense, onOpenDistributeAid }) => {
                         {item.linkedBeneficiaryName ? (
                           <div className="flex items-center gap-1.5 font-bold text-teal-900">
                             <Users className="w-3.5 h-3.5 text-teal-600 shrink-0" />
-                            <span>{item.linkedBeneficiaryName}</span>
+                            <span>{isPublicMode ? 'Verified Needy Family (সুরক্ষিত)' : item.linkedBeneficiaryName}</span>
                           </div>
                         ) : (
                           <span className="text-slate-400 italic">Wholesale / Vendor</span>
