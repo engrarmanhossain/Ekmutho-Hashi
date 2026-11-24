@@ -362,12 +362,12 @@ export const CharityProvider = ({ children }) => {
     avatar_url: s.avatarUrl || null
   });
 
-  // Pull data from Supabase Cloud
-  const pullFromSupabase = useCallback(async () => {
+  // Pull data from Supabase Cloud (with optional silent background sync)
+  const pullFromSupabase = useCallback(async (silent = false) => {
     const supabase = getSupabaseClient();
     if (!supabase) return;
 
-    setIsCloudSyncing(true);
+    if (!silent) setIsCloudSyncing(true);
     try {
       const [
         { data: campData },
@@ -387,23 +387,24 @@ export const CharityProvider = ({ children }) => {
         supabase.from('staff_members').select('*').order('created_at', { ascending: false })
       ]);
 
-      if (campData && campData.length > 0) setCampaigns(campData.map(mapDbCampaign));
-      if (donorData && donorData.length > 0) setDonors(donorData.map(mapDbDonor));
-      if (benData && benData.length > 0) setBeneficiaries(benData.map(mapDbBeneficiary));
-      if (invData && invData.length > 0) setInventory(invData.map(mapDbInventory));
-      if (pkgData && pkgData.length > 0) setPackages(pkgData.map(mapDbPackage));
-      if (expData && expData.length > 0) setExpenses(expData.map(mapDbExpense));
+      if (campData) setCampaigns(campData.map(mapDbCampaign));
+      if (donorData) setDonors(donorData.map(mapDbDonor));
+      if (benData) setBeneficiaries(benData.map(mapDbBeneficiary));
+      if (invData) setInventory(invData.map(mapDbInventory));
+      if (pkgData) setPackages(pkgData.map(mapDbPackage));
+      if (expData) setExpenses(expData.map(mapDbExpense));
       if (staffData && staffData.length > 0) setStaff(staffData.map(mapDbStaff));
 
-      const totalRows = (campData?.length || 0) + (donorData?.length || 0) + (benData?.length || 0);
-      if (totalRows > 0) {
+      if (!silent) {
         addToast('Data synced from Supabase cloud!', 'success');
       }
     } catch (err) {
       console.error('Supabase pull error:', err);
-      addToast(`Sync notice: ${err.message || 'Check database permissions'}`, 'info');
+      if (!silent) {
+        addToast(`Sync notice: ${err.message || 'Check database permissions'}`, 'info');
+      }
     } finally {
-      setIsCloudSyncing(false);
+      if (!silent) setIsCloudSyncing(false);
     }
   }, []);
 
@@ -526,11 +527,12 @@ export const CharityProvider = ({ children }) => {
       }
     });
 
-    // Initial pull
-    pullFromSupabase();
+    // Initial silent pull
+    pullFromSupabase(true);
 
-    // Setup Realtime Channel for Postgres changes
-    const channel = supabase.channel('ekmutho_db_changes')
+    // Setup resilient Realtime Channel for Postgres changes
+    const channelName = `ekmutho_rt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const channel = supabase.channel(channelName)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'campaigns' }, (payload) => {
         if (payload.eventType === 'INSERT') {
           const item = mapDbCampaign(payload.new);
@@ -608,11 +610,42 @@ export const CharityProvider = ({ children }) => {
           setStaff(prev => prev.filter(s => s.id !== payload.old.id));
         }
       })
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          pullFromSupabase(true);
+        }
+      });
 
     return () => {
       authSub?.unsubscribe();
       supabase.removeChannel(channel);
+    };
+  }, [pullFromSupabase]);
+
+  // Mobile Visibility & Focus Auto-Sync (Fixes phones not syncing when unlocked/resumed)
+  useEffect(() => {
+    const handleSyncOnResume = () => {
+      if (document.visibilityState === 'visible') {
+        pullFromSupabase(true);
+      }
+    };
+
+    window.addEventListener('focus', handleSyncOnResume);
+    window.addEventListener('online', handleSyncOnResume);
+    document.addEventListener('visibilitychange', handleSyncOnResume);
+
+    // Smart background heartbeat poll (every 5 seconds when phone screen is active)
+    const pollInterval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        pullFromSupabase(true);
+      }
+    }, 5000);
+
+    return () => {
+      window.removeEventListener('focus', handleSyncOnResume);
+      window.removeEventListener('online', handleSyncOnResume);
+      document.removeEventListener('visibilitychange', handleSyncOnResume);
+      clearInterval(pollInterval);
     };
   }, [pullFromSupabase]);
 
