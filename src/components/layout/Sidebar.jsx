@@ -201,7 +201,7 @@ export const Sidebar = ({
         </div>
 
         {/* Navigation Links */}
-        <nav className="flex-1 px-3 py-3 space-y-1.5 overflow-y-auto">
+        <nav className="flex-1 px-3 py-3 pb-8 space-y-1.5 overflow-y-auto">
           <div className="px-3 pb-1 text-[10px] font-bold tracking-wider uppercase text-slate-400/90">
             Navigation Menu
           </div>
@@ -314,7 +314,7 @@ export const Sidebar = ({
         </nav>
 
         {/* Leadership & Verification Footer */}
-        <div className="p-3.5 border-t border-slate-800/80 bg-slate-950/40 space-y-2">
+        <div className="p-3.5 border-t border-slate-800/80 bg-slate-950/40 space-y-2 shrink-0">
           {/* Authenticated Staff / Admin Card */}
           {user ? (
             <button

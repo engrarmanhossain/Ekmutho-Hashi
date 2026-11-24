@@ -110,7 +110,7 @@ export const Topbar = ({
           </div>
 
           {/* Right Controls: Role actions, and menus */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             {/* 1. ADMIN-ONLY: SUPABASE CLOUD SYNC BUTTON (Strictly visible ONLY in Admin View) */}
             {permissions.canManageSupabase && (
               <button
@@ -154,11 +154,11 @@ export const Topbar = ({
               <button
                 type="button"
                 onClick={onOpenStaffManagement}
-                className="relative inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-900 border border-amber-300 hover:bg-amber-500/25 transition shadow-xs cursor-pointer"
+                className="relative inline-flex items-center gap-1.5 px-2 py-1.5 sm:px-2.5 sm:py-2 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-900 border border-amber-300 hover:bg-amber-500/25 transition shadow-xs cursor-pointer"
                 title="Executive Approvals (Relief, Donations & Staff)"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-amber-700" />
-                <span className="hidden md:inline">Approvals</span>
+                <span className="hidden sm:inline">Approvals</span>
                 {totalPendingApprovals > 0 && (
                   <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white animate-pulse">
                     {totalPendingApprovals}
@@ -172,12 +172,11 @@ export const Topbar = ({
               <button
                 type="button"
                 onClick={onOpenPublicApply}
-                className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs font-bold text-amber-950 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 active:scale-98 shadow-sm transition border border-amber-500/30"
+                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs font-bold text-amber-950 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 active:scale-98 shadow-sm transition border border-amber-500/30"
                 title="Apply for Relief Aid / দুস্থ পরিবার আবেদন"
               >
                 <HeartHandshake className="w-3.5 h-3.5 text-amber-900" />
-                <span className="hidden sm:inline">Apply for Relief</span>
-                <span className="sm:hidden">ত্রাণ আবেদন</span>
+                <span>Apply for Relief</span>
               </button>
             )}
 
@@ -188,7 +187,7 @@ export const Topbar = ({
                 className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-98 shadow-sm transition"
               >
                 <Heart className="w-3.5 h-3.5 text-rose-200 fill-rose-200" />
-                <span>Donate / Support</span>
+                <span>Donate</span>
               </button>
             )}
 
@@ -197,7 +196,7 @@ export const Topbar = ({
               <button
                 type="button"
                 onClick={onOpenProfileSettings}
-                className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs font-bold border transition ${
+                className={`inline-flex items-center gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-bold border transition ${
                   isUserAdmin
                     ? 'bg-amber-100 text-amber-950 border-amber-300 hover:bg-amber-200'
                     : 'bg-teal-50 text-teal-800 border-teal-300 hover:bg-teal-100'
@@ -229,12 +228,13 @@ export const Topbar = ({
                 className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition"
               >
                 <User className="w-3.5 h-3.5 text-slate-600" />
-                <span>Staff Sign In</span>
+                <span className="hidden sm:inline">Staff Sign In</span>
+                <span className="sm:hidden">Login</span>
               </button>
             )}
 
-            {/* 7. CAMPAIGN SELECTOR */}
-            <div className="relative flex items-center">
+            {/* 7. CAMPAIGN SELECTOR: Visible on md+ to prevent mobile blowout */}
+            <div className="relative hidden md:flex items-center">
               <div className="absolute left-2.5 pointer-events-none text-slate-400">
                 <Filter className="w-3.5 h-3.5" />
               </div>
@@ -253,16 +253,16 @@ export const Topbar = ({
               <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 pointer-events-none" />
             </div>
 
-            {/* 8. QUICK ACTIONS: Visible only if role permissions allow */}
+            {/* 8. QUICK ACTIONS: Visible on sm+ screens */}
             {permissions.canAddFund && (
               <button
                 type="button"
                 onClick={onOpenAddFund}
-                className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-98 shadow-sm transition"
+                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-98 shadow-sm transition"
                 title="Record a donor contribution"
               >
                 <PlusCircle className="w-4 h-4" />
-                <span className="hidden sm:inline">+ Fund</span>
+                <span className="hidden md:inline">+ Fund</span>
               </button>
             )}
 
@@ -270,11 +270,11 @@ export const Topbar = ({
               <button
                 type="button"
                 onClick={onOpenDistributeAid}
-                className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-teal-600 hover:bg-teal-700 active:scale-98 shadow-sm transition"
+                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-teal-600 hover:bg-teal-700 active:scale-98 shadow-sm transition"
                 title="Distribute relief aid to family"
               >
                 <Gift className="w-4 h-4" />
-                <span className="hidden sm:inline">Distribute</span>
+                <span className="hidden md:inline">Distribute</span>
               </button>
             )}
 

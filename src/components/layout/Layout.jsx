@@ -21,7 +21,7 @@ export const Layout = ({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans w-full max-w-full overflow-x-hidden">
       {/* Sidebar Navigation */}
       <Sidebar
         activeTab={activeTab}
@@ -37,7 +37,7 @@ export const Layout = ({
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col lg:pl-72 transition-all duration-300">
+      <div className="flex-1 flex flex-col lg:pl-72 transition-all duration-300 w-full max-w-full min-w-0 overflow-x-hidden">
         {/* Sticky Topbar */}
         <Topbar
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -54,7 +54,7 @@ export const Layout = ({
         />
 
         {/* Page View Body */}
-        <main className="flex-1 p-3.5 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-3 sm:p-5 lg:p-8 max-w-7xl w-full min-w-0 mx-auto overflow-x-hidden">
           {children}
         </main>
       </div>
