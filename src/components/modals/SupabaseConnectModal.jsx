@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { useCharity } from '../../context/CharityContext';
+import { cleanSupabaseUrl } from '../../lib/supabase';
 
 export const SupabaseConnectModal = ({ isOpen, onClose }) => {
   const {
@@ -27,25 +28,35 @@ export const SupabaseConnectModal = ({ isOpen, onClose }) => {
     isCloudSyncing
   } = useCharity();
 
-  const [url, setUrl] = useState(supabaseUrl || '');
+  const [url, setUrl] = useState(() => cleanSupabaseUrl(supabaseUrl || ''));
   const [key, setKey] = useState(supabaseKey || '');
   const [copiedSql, setCopiedSql] = useState(false);
   const [testingStatus, setTestingStatus] = useState(null); // 'testing' | 'success' | 'error'
   const [statusMessage, setStatusMessage] = useState('');
 
+  React.useEffect(() => {
+    if (isOpen && supabaseUrl) {
+      setUrl(cleanSupabaseUrl(supabaseUrl));
+    }
+  }, [isOpen, supabaseUrl]);
+
   const handleSaveAndConnect = async (e) => {
     e.preventDefault();
-    if (!url.trim() || !key.trim()) {
+    const cleanedUrl = cleanSupabaseUrl(url);
+    const trimmedKey = key.trim();
+
+    if (!cleanedUrl || !trimmedKey) {
       setStatusMessage('Please enter both Supabase Project URL and Anon Public Key.');
       setTestingStatus('error');
       return;
     }
 
+    setUrl(cleanedUrl);
     setTestingStatus('testing');
     setStatusMessage('Connecting to Supabase...');
 
     try {
-      const success = await connectSupabase(url.trim(), key.trim());
+      const success = await connectSupabase(cleanedUrl, trimmedKey);
       if (success) {
         setTestingStatus('success');
         setStatusMessage('Connected successfully to Supabase! Multi-phone sync is active.');
@@ -159,7 +170,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.campaigns, public.inventory
               required
             />
             <p className="text-[11px] text-slate-400 mt-1">
-              Found in your Supabase Dashboard: <strong>Project Settings → API → Project URL & Project API Keys (anon public)</strong>.
+              Found in your Supabase Dashboard: <strong>Project Settings → API → Project URL</strong> (e.g. <span className="text-teal-700 font-mono font-semibold">https://xyz.supabase.co</span>) & <strong>Project API Keys (anon public)</strong>. Any trailing <code className="text-rose-500 font-mono">/rest/v1/</code> is automatically sanitized.
             </p>
           </div>
 

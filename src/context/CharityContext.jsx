@@ -14,7 +14,8 @@ import {
   isSupabaseConfigured,
   saveSupabaseConfig,
   clearSupabaseConfig,
-  getSupabaseCredentials
+  getSupabaseCredentials,
+  cleanSupabaseUrl
 } from '../lib/supabase';
 
 const CharityContext = createContext(null);
@@ -448,7 +449,8 @@ export const CharityProvider = ({ children }) => {
 
   // Connect & Disconnect Supabase
   const connectSupabase = async (url, key) => {
-    saveSupabaseConfig(url, key);
+    const cleanedUrl = cleanSupabaseUrl(url);
+    saveSupabaseConfig(cleanedUrl, key);
     const client = getSupabaseClient();
     if (!client) return false;
 
@@ -460,7 +462,7 @@ export const CharityProvider = ({ children }) => {
       }
 
       setIsCloudConnected(true);
-      setSupabaseCreds({ url, key });
+      setSupabaseCreds({ url: cleanedUrl, key });
       pullFromSupabase();
       return true;
     } catch (err) {
