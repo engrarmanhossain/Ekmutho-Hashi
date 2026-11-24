@@ -27,9 +27,9 @@ export const Modal = ({ isOpen, onClose, title, subtitle, children, maxWidth = '
       />
 
       {/* Modal Dialog Container */}
-      <div className="flex min-h-full items-center justify-center p-2.5 sm:p-4 text-center">
+      <div className="flex min-h-full items-center justify-center p-3 sm:p-4 text-center">
         <div
-          className={`relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all w-full max-w-[calc(100vw-1.25rem)] sm:${maxWidth} border border-slate-200`}
+          className={`relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all w-full ${maxWidth} border border-slate-200`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
