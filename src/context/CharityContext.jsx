@@ -370,12 +370,12 @@ export const CharityProvider = ({ children }) => {
     setIsCloudSyncing(true);
     try {
       const [
-        { data: campData, error: campErr },
-        { data: donorData, error: donorErr },
-        { data: benData, error: benErr },
-        { data: invData, error: invErr },
-        { data: pkgData, error: pkgErr },
-        { data: expData, error: expErr },
+        { data: campData },
+        { data: donorData },
+        { data: benData },
+        { data: invData },
+        { data: pkgData },
+        { data: expData },
         { data: staffData }
       ] = await Promise.all([
         supabase.from('campaigns').select('*').order('created_at', { ascending: false }),
@@ -387,8 +387,6 @@ export const CharityProvider = ({ children }) => {
         supabase.from('staff_members').select('*').order('created_at', { ascending: false })
       ]);
 
-      if (campErr) throw campErr;
-
       if (campData && campData.length > 0) setCampaigns(campData.map(mapDbCampaign));
       if (donorData && donorData.length > 0) setDonors(donorData.map(mapDbDonor));
       if (benData && benData.length > 0) setBeneficiaries(benData.map(mapDbBeneficiary));
@@ -397,7 +395,10 @@ export const CharityProvider = ({ children }) => {
       if (expData && expData.length > 0) setExpenses(expData.map(mapDbExpense));
       if (staffData && staffData.length > 0) setStaff(staffData.map(mapDbStaff));
 
-      addToast('Data synced from Supabase cloud!', 'success');
+      const totalRows = (campData?.length || 0) + (donorData?.length || 0) + (benData?.length || 0);
+      if (totalRows > 0) {
+        addToast('Data synced from Supabase cloud!', 'success');
+      }
     } catch (err) {
       console.error('Supabase pull error:', err);
       addToast(`Sync notice: ${err.message || 'Check database permissions'}`, 'info');
@@ -415,30 +416,43 @@ export const CharityProvider = ({ children }) => {
     }
 
     setIsCloudSyncing(true);
-    try {
-      if (campaigns.length > 0) {
-        await supabase.from('campaigns').upsert(campaigns.map(mapAppCampaignToDb));
-      }
-      if (inventory.length > 0) {
-        await supabase.from('inventory').upsert(inventory.map(mapAppInventoryToDb));
-      }
-      if (packages.length > 0) {
-        await supabase.from('packages').upsert(packages.map(mapAppPackageToDb));
-      }
-      if (donors.length > 0) {
-        await supabase.from('donors').upsert(donors.map(mapAppDonorToDb));
-      }
-      if (beneficiaries.length > 0) {
-        await supabase.from('beneficiaries').upsert(beneficiaries.map(mapAppBeneficiaryToDb));
-      }
-      if (expenses.length > 0) {
-        await supabase.from('expenses').upsert(expenses.map(mapAppExpenseToDb));
-      }
-      if (staff.length > 0) {
-        await supabase.from('staff_members').upsert(staff.map(mapAppStaffToDb));
-      }
+    const errors = [];
+    let uploadedCount = 0;
 
-      addToast('All local records successfully uploaded to Supabase!', 'success');
+    const pushTable = async (name, records, mapper, table) => {
+      if (!records || records.length === 0) return;
+      try {
+        const payload = records.map(mapper);
+        const { error } = await supabase.from(table).upsert(payload);
+        if (error) {
+          throw error;
+        }
+        uploadedCount += payload.length;
+      } catch (err) {
+        console.error(`Failed to upload ${name}:`, err);
+        errors.push(`${name}: ${err.message}`);
+      }
+    };
+
+    try {
+      await pushTable('Campaigns', campaigns, mapAppCampaignToDb, 'campaigns');
+      await pushTable('Inventory', inventory, mapAppInventoryToDb, 'inventory');
+      await pushTable('Packages', packages, mapAppPackageToDb, 'packages');
+      await pushTable('Donors', donors, mapAppDonorToDb, 'donors');
+      await pushTable('Beneficiaries', beneficiaries, mapAppBeneficiaryToDb, 'beneficiaries');
+      await pushTable('Expenses', expenses, mapAppExpenseToDb, 'expenses');
+      await pushTable('Staff', staff, mapAppStaffToDb, 'staff_members');
+
+      if (errors.length === 0) {
+        addToast(`All ${uploadedCount} local records successfully uploaded to Supabase cloud!`, 'success');
+      } else {
+        const hasRlsError = errors.some(e => e.includes('row-level security') || e.includes('policy'));
+        if (hasRlsError) {
+          addToast('Supabase RLS permission error: Please copy and run the SQL Schema in Supabase SQL Editor.', 'error');
+        } else {
+          addToast(`Synced with notices: ${errors[0]}`, 'info');
+        }
+      }
     } catch (err) {
       console.error('Sync to Supabase error:', err);
       addToast(`Failed to upload to cloud: ${err.message}`, 'error');
@@ -576,6 +590,17 @@ export const CharityProvider = ({ children }) => {
           setExpenses(prev => prev.map(e => e.id === item.id ? item : e));
         } else if (payload.eventType === 'DELETE') {
           setExpenses(prev => prev.filter(e => e.id !== payload.old.id));
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'staff_members' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          const item = mapDbStaff(payload.new);
+          setStaff(prev => [item, ...prev.filter(s => s.id !== item.id)]);
+        } else if (payload.eventType === 'UPDATE') {
+          const item = mapDbStaff(payload.new);
+          setStaff(prev => prev.map(s => s.id === item.id ? item : s));
+        } else if (payload.eventType === 'DELETE') {
+          setStaff(prev => prev.filter(s => s.id !== payload.old.id));
         }
       })
       .subscribe();

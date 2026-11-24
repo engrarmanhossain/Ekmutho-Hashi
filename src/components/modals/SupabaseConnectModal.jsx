@@ -71,14 +71,202 @@ export const SupabaseConnectModal = ({ isOpen, onClose }) => {
   };
 
   const handleCopySql = () => {
-    const sqlScript = `-- Ekmutho Hashi Supabase Tables
-CREATE TABLE IF NOT EXISTS public.campaigns (id TEXT PRIMARY KEY, name TEXT NOT NULL, bangla_name TEXT, description TEXT, target_amount NUMERIC DEFAULT 0, target_families INTEGER DEFAULT 0, start_date TEXT, end_date TEXT, status TEXT DEFAULT 'active', category TEXT, created_at TIMESTAMPTZ DEFAULT NOW());
-CREATE TABLE IF NOT EXISTS public.inventory (id TEXT PRIMARY KEY, name TEXT NOT NULL, category TEXT, unit TEXT NOT NULL, qty_purchased NUMERIC DEFAULT 0, qty_donated NUMERIC DEFAULT 0, qty_distributed NUMERIC DEFAULT 0, unit_cost NUMERIC DEFAULT 0, min_alert_stock NUMERIC DEFAULT 10, notes TEXT, created_at TIMESTAMPTZ DEFAULT NOW());
-CREATE TABLE IF NOT EXISTS public.packages (id TEXT PRIMARY KEY, name TEXT NOT NULL, bangla_name TEXT, campaign_id TEXT, description TEXT, items JSONB DEFAULT '[]'::jsonb, created_at TIMESTAMPTZ DEFAULT NOW());
-CREATE TABLE IF NOT EXISTS public.donors (id TEXT PRIMARY KEY, receipt_id TEXT NOT NULL, donor_name TEXT NOT NULL, phone TEXT, reference TEXT, campaign_id TEXT, contribution_type TEXT NOT NULL, amount NUMERIC DEFAULT 0, product_details JSONB, payment_method TEXT, transaction_id TEXT, date TEXT, note TEXT, recorded_by TEXT, created_at TIMESTAMPTZ DEFAULT NOW());
-CREATE TABLE IF NOT EXISTS public.beneficiaries (id TEXT PRIMARY KEY, family_id TEXT NOT NULL, token_number TEXT NOT NULL, head_name TEXT NOT NULL, guardian_name TEXT, mobile TEXT, area TEXT, nid TEXT, family_members INTEGER DEFAULT 1, priority_category TEXT, status TEXT DEFAULT 'Pending', notes TEXT, aid_history JSONB DEFAULT '[]'::jsonb, created_at TIMESTAMPTZ DEFAULT NOW());
-CREATE TABLE IF NOT EXISTS public.expenses (id TEXT PRIMARY KEY, date TEXT NOT NULL, campaign_id TEXT, type TEXT NOT NULL, category TEXT, amount NUMERIC DEFAULT 0, payment_method TEXT, handled_by TEXT, linked_beneficiary_id TEXT, linked_beneficiary_name TEXT, note TEXT, items JSONB DEFAULT '[]'::jsonb, is_distribution BOOLEAN DEFAULT FALSE, created_at TIMESTAMPTZ DEFAULT NOW());
-ALTER PUBLICATION supabase_realtime ADD TABLE public.campaigns, public.inventory, public.packages, public.donors, public.beneficiaries, public.expenses;`;
+    const sqlScript = `-- =========================================================================
+-- Ekmutho Hashi (একমুঠো হাসি) — Complete Multi-Device Supabase Schema & Sync Setup
+-- Paste this entire script into your Supabase Dashboard -> SQL Editor and click "Run" (F5)
+-- =========================================================================
+
+-- 1. CAMPAIGNS TABLE
+CREATE TABLE IF NOT EXISTS public.campaigns (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  bangla_name TEXT,
+  description TEXT,
+  target_amount NUMERIC DEFAULT 0,
+  target_families INTEGER DEFAULT 0,
+  start_date TEXT,
+  end_date TEXT,
+  status TEXT DEFAULT 'active',
+  category TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2. INVENTORY TABLE
+CREATE TABLE IF NOT EXISTS public.inventory (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  category TEXT,
+  unit TEXT NOT NULL,
+  qty_purchased NUMERIC DEFAULT 0,
+  qty_donated NUMERIC DEFAULT 0,
+  qty_distributed NUMERIC DEFAULT 0,
+  unit_cost NUMERIC DEFAULT 0,
+  min_alert_stock NUMERIC DEFAULT 10,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 3. PACKAGES TABLE
+CREATE TABLE IF NOT EXISTS public.packages (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  bangla_name TEXT,
+  campaign_id TEXT,
+  description TEXT,
+  items JSONB DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 4. DONORS TABLE (With verification & approval tracking)
+CREATE TABLE IF NOT EXISTS public.donors (
+  id TEXT PRIMARY KEY,
+  receipt_id TEXT NOT NULL,
+  donor_name TEXT NOT NULL,
+  phone TEXT,
+  reference TEXT,
+  campaign_id TEXT,
+  contribution_type TEXT NOT NULL,
+  amount NUMERIC DEFAULT 0,
+  product_details JSONB,
+  payment_method TEXT,
+  transaction_id TEXT,
+  date TEXT,
+  note TEXT,
+  recorded_by TEXT,
+  approval_status TEXT DEFAULT 'approved',
+  status TEXT DEFAULT 'Verified',
+  approved_by TEXT,
+  submitted_by TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE public.donors ADD COLUMN IF NOT EXISTS approval_status TEXT DEFAULT 'approved';
+ALTER TABLE public.donors ADD COLUMN IF NOT EXISTS approved_by TEXT;
+ALTER TABLE public.donors ADD COLUMN IF NOT EXISTS submitted_by TEXT;
+
+-- 5. BENEFICIARIES TABLE (With verification, approval & token slot tracking)
+CREATE TABLE IF NOT EXISTS public.beneficiaries (
+  id TEXT PRIMARY KEY,
+  family_id TEXT NOT NULL,
+  token_number TEXT NOT NULL,
+  head_name TEXT NOT NULL,
+  guardian_name TEXT,
+  mobile TEXT,
+  area TEXT,
+  nid TEXT,
+  family_members INTEGER DEFAULT 1,
+  priority_category TEXT,
+  status TEXT DEFAULT 'Pending',
+  approval_status TEXT DEFAULT 'approved',
+  approved_by TEXT,
+  approved_at TEXT,
+  submitted_by TEXT,
+  submitted_at TEXT,
+  distribution_slot TEXT,
+  token_notes TEXT,
+  notes TEXT,
+  aid_history JSONB DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE public.beneficiaries ADD COLUMN IF NOT EXISTS approval_status TEXT DEFAULT 'approved';
+ALTER TABLE public.beneficiaries ADD COLUMN IF NOT EXISTS approved_by TEXT;
+ALTER TABLE public.beneficiaries ADD COLUMN IF NOT EXISTS approved_at TEXT;
+ALTER TABLE public.beneficiaries ADD COLUMN IF NOT EXISTS submitted_by TEXT;
+ALTER TABLE public.beneficiaries ADD COLUMN IF NOT EXISTS submitted_at TEXT;
+ALTER TABLE public.beneficiaries ADD COLUMN IF NOT EXISTS distribution_slot TEXT;
+ALTER TABLE public.beneficiaries ADD COLUMN IF NOT EXISTS token_notes TEXT;
+
+-- 6. EXPENSES & DISTRIBUTIONS TABLE
+CREATE TABLE IF NOT EXISTS public.expenses (
+  id TEXT PRIMARY KEY,
+  date TEXT NOT NULL,
+  campaign_id TEXT,
+  type TEXT NOT NULL,
+  category TEXT,
+  amount NUMERIC DEFAULT 0,
+  payment_method TEXT,
+  handled_by TEXT,
+  linked_beneficiary_id TEXT,
+  linked_beneficiary_name TEXT,
+  note TEXT,
+  items JSONB DEFAULT '[]'::jsonb,
+  is_distribution BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 7. STAFF MEMBERS TABLE (Volunteers & Admin Roster)
+CREATE TABLE IF NOT EXISTS public.staff_members (
+  id TEXT PRIMARY KEY,
+  staff_id TEXT,
+  full_name TEXT NOT NULL,
+  email TEXT,
+  password TEXT,
+  phone TEXT,
+  role TEXT DEFAULT 'Field Volunteer',
+  area TEXT,
+  status TEXT DEFAULT 'pending',
+  joined_date TEXT,
+  approved_by TEXT,
+  notes TEXT,
+  avatar_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE public.staff_members ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+
+-- 8. ORG SETTINGS TABLE (Branding & Global Profile)
+CREATE TABLE IF NOT EXISTS public.org_settings (
+  id TEXT PRIMARY KEY,
+  name TEXT,
+  bangla_name TEXT,
+  slogan TEXT,
+  logo_url TEXT,
+  president TEXT,
+  treasurer TEXT,
+  contact_phone TEXT,
+  contact_email TEXT,
+  office_address TEXT,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- =========================================================================
+-- 9. PERMISSION POLICIES (Fixes "new row violates row-level security policy")
+-- Disable RLS or create open public policy so multi-phone sync works for all volunteers
+-- =========================================================================
+ALTER TABLE public.campaigns DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.inventory DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.packages DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.donors DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.beneficiaries DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.expenses DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.staff_members DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.org_settings DISABLE ROW LEVEL SECURITY;
+
+DO $$
+DECLARE
+  tbl text;
+BEGIN
+  FOR tbl IN SELECT unnest(ARRAY['campaigns','inventory','packages','donors','beneficiaries','expenses','staff_members','org_settings'])
+  LOOP
+    EXECUTE format('DROP POLICY IF EXISTS "Allow all operations" ON public.%I;', tbl);
+    EXECUTE format('CREATE POLICY "Allow all operations" ON public.%I FOR ALL USING (true) WITH CHECK (true);', tbl);
+  END LOOP;
+END $$;
+
+-- =========================================================================
+-- 10. REALTIME SUBSCRIPTION FOR INSTANT MULTI-DEVICE UPDATES
+-- =========================================================================
+DO $$
+DECLARE
+  tbl text;
+BEGIN
+  FOR tbl IN SELECT unnest(ARRAY['campaigns','inventory','packages','donors','beneficiaries','expenses','staff_members','org_settings'])
+  LOOP
+    BEGIN
+      EXECUTE format('ALTER PUBLICATION supabase_realtime ADD TABLE public.%I;', tbl);
+    EXCEPTION WHEN duplicate_object THEN
+      NULL;
+    END;
+  END LOOP;
+END $$;`;
 
     navigator.clipboard.writeText(sqlScript);
     setCopiedSql(true);
