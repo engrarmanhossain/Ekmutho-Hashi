@@ -423,7 +423,12 @@ export const CharityProvider = ({ children }) => {
       if (!records || records.length === 0) return;
       try {
         const payload = records.map(mapper);
-        const { error } = await supabase.from(table).upsert(payload);
+        let { error } = await supabase.from(table).upsert(payload);
+        if (error && error.message?.includes("'status' column of 'donors'")) {
+          const fallbackPayload = payload.map(({ status, ...rest }) => rest);
+          const res = await supabase.from(table).upsert(fallbackPayload);
+          error = res.error;
+        }
         if (error) {
           throw error;
         }
@@ -1250,7 +1255,12 @@ export const CharityProvider = ({ children }) => {
     const supabase = getSupabaseClient();
     if (supabase) {
       try {
-        await supabase.from('donors').insert(mapAppDonorToDb(newDonor));
+        const payload = mapAppDonorToDb(newDonor);
+        let { error } = await supabase.from('donors').insert(payload);
+        if (error && error.message?.includes("'status' column of 'donors'")) {
+          const { status, ...rest } = payload;
+          await supabase.from('donors').insert(rest);
+        }
       } catch (err) {
         console.error('Cloud donor insert failed:', err);
       }
@@ -1301,7 +1311,12 @@ export const CharityProvider = ({ children }) => {
     const supabase = getSupabaseClient();
     if (supabase) {
       try {
-        await supabase.from('donors').update(mapAppDonorToDb(approvedRecord)).eq('id', donorId);
+        const payload = mapAppDonorToDb(approvedRecord);
+        let { error } = await supabase.from('donors').update(payload).eq('id', donorId);
+        if (error && error.message?.includes("'status' column of 'donors'")) {
+          const { status, ...rest } = payload;
+          await supabase.from('donors').update(rest).eq('id', donorId);
+        }
       } catch (err) {
         console.error('Cloud donor approval error:', err);
       }

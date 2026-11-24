@@ -140,6 +140,7 @@ CREATE TABLE IF NOT EXISTS public.donors (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 ALTER TABLE public.donors ADD COLUMN IF NOT EXISTS approval_status TEXT DEFAULT 'approved';
+ALTER TABLE public.donors ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Verified';
 ALTER TABLE public.donors ADD COLUMN IF NOT EXISTS approved_by TEXT;
 ALTER TABLE public.donors ADD COLUMN IF NOT EXISTS submitted_by TEXT;
 
